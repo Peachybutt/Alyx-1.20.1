@@ -17,7 +17,25 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
 
     @Override
     public BlockPathTypes getBlockPathType(BlockGetter level, int x, int y, int z) {
-        BlockPos pos = new BlockPos(x, y - 1, z);
+        BlockPos pos = new BlockPos(x, y, z);
+        BlockState state = level.getBlockState(pos);
+        BlockPathTypes currentPathType = evaluateBlock(level, pos);
+
+        // If current position is walkable or otherwise acceptable, return it.
+        if (currentPathType == BlockPathTypes.WALKABLE ||
+                currentPathType == BlockPathTypes.OPEN ||
+                currentPathType == BlockPathTypes.DOOR_OPEN ||
+                currentPathType == BlockPathTypes.FENCE) {
+            return currentPathType;
+        }
+
+        BlockPathTypes original = super.getBlockPathType(level, x, y, z);
+
+        BlockPathTypes overridden = AlyxPathLogic.overridePathType(original, state);
+        return overridden;
+    }
+
+    private BlockPathTypes evaluateBlock(BlockGetter level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         Block block = state.getBlock();
 
@@ -27,18 +45,17 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
             boolean west = state.getValue(FenceBlock.WEST);
             boolean east = state.getValue(FenceBlock.EAST);
 
-            // If any side is open, consider it walkable
-            if (!north || !south || !west || !east) {
+            // Consider walkable if there's an open side and space above
+            BlockState above = level.getBlockState(pos.above());
+            if ((!north || !south || !west || !east) && above.isAir()) {
                 return BlockPathTypes.WALKABLE;
-            } else {
-                return BlockPathTypes.FENCE;
             }
+            return BlockPathTypes.FENCE;
         }
 
-        BlockPathTypes original = super.getBlockPathType(level, x, y, z);
-
-        BlockPathTypes overridden = AlyxPathLogic.overridePathType(original, state);
-        return overridden;
+        // Let AlyxPathLogic modify other block types
+        BlockPathTypes original = super.getBlockPathType(level, pos.getX(), pos.getY(), pos.getZ());
+        return AlyxPathLogic.overridePathType(original, state);
     }
 
 
