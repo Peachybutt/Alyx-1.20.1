@@ -20,7 +20,6 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.AlyxGroundPathNav;
-import net.peachybutt.AlyxAwakened.entity.custom.sub.AlyxMoveControl;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
