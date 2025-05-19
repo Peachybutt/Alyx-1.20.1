@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alyx_awakened:unobtanium_block"
+    }
+  ],
+  "result": {
+    "item": "alyx_awakened:unobtanium",
+    "count": 9
+  }
+}

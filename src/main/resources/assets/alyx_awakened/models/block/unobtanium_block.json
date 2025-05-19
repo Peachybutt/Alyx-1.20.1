@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "alyx_awakened:block/unobtanium_block"
+  }
+}

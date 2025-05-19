@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "alyx_awakened:unobtanium"
+    }
+  },
+  "result": {
+    "item": "alyx_awakened:unobtanium_block"
+  }
+}
