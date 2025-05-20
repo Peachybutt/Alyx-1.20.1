@@ -36,25 +36,4 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
         this.alyxPathLogic = new AlyxPathLogic();
         return new PathFinder(this.alyxNodeEvaluator, maxVisitedNodes);
     }
-
-    @Override
-    protected Vec3 getTempMobPos() {
-        Vec3 basePos = super.getTempMobPos();
-        BlockPos blockPos = BlockPos.containing(basePos);
-
-        if (this.level.getBlockState(blockPos).getBlock() instanceof FenceBlock fence) {
-            BlockState state = this.level.getBlockState(blockPos);
-
-            double dx = 0.5, dz = 0.5;
-
-            if (!state.getValue(FenceBlock.NORTH)) dz = 0.25;
-            else if (!state.getValue(FenceBlock.SOUTH)) dz = 0.75;
-            else if (!state.getValue(FenceBlock.WEST)) dx = 0.25;
-            else if (!state.getValue(FenceBlock.EAST)) dx = 0.75;
-
-            return new Vec3(blockPos.getX() + dx, blockPos.getY(), blockPos.getZ() + dz);
-        }
-
-        return basePos;
-    }
 }
