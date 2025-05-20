@@ -7,7 +7,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.world.level.pathfinder.NodeEvaluator;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 
 public class AlyxWalkNodeEval extends WalkNodeEvaluator {
@@ -17,21 +16,27 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
 
     @Override
     public BlockPathTypes getBlockPathType(BlockGetter level, int x, int y, int z) {
+        //Evaluate current block pos
         BlockPos pos = new BlockPos(x, y, z);
-        BlockState state = level.getBlockState(pos);
-        BlockPathTypes currentPathType = evaluateBlock(level, pos);
+        BlockPathTypes currentType = evaluateBlock(level, pos);
 
-        // If current position is walkable or otherwise acceptable, return it.
-        if (currentPathType == BlockPathTypes.WALKABLE ||
-                currentPathType == BlockPathTypes.OPEN ||
-                currentPathType == BlockPathTypes.DOOR_OPEN ||
-                currentPathType == BlockPathTypes.FENCE) {
-            return currentPathType;
-        }
+        //Evaluate block below (ordinarily for AlyxPathLogic)
+        BlockPos posBelow = pos.below();
+        BlockPathTypes belowType = evaluateBlock(level, posBelow);
 
-        BlockPathTypes original = super.getBlockPathType(level, x, y, z);
+        // For debugging: print out the types for both levels.
+        System.out.println("Current pos " + pos + " type: " + currentType + " | Below pos " + posBelow + " type: " + belowType);
 
-        BlockPathTypes overridden = AlyxPathLogic.overridePathType(original, state);
+        // Combine the evaluations:
+        // Here, we assume that if the block below isn’t walkable, it’s a show-stopper.
+        BlockPathTypes finalType = belowType != BlockPathTypes.WALKABLE ? belowType : currentType;
+
+        // Finally, apply the AlyxPathLogic overrides to the chosen block state.
+        // Note: You may adjust this order depending on whether the override should consider both levels.
+        BlockState currentState = level.getBlockState(pos);
+        BlockPathTypes overridden = AlyxPathLogic.overridePathType(finalType, currentState);
+
+        System.out.println("Final override for pos " + pos + ": " + overridden);
         return overridden;
     }
 
@@ -45,17 +50,15 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
             boolean west = state.getValue(FenceBlock.WEST);
             boolean east = state.getValue(FenceBlock.EAST);
 
-            // Consider walkable if there's an open side and space above
             BlockState above = level.getBlockState(pos.above());
-            if ((!north || !south || !west || !east) && above.isAir()) {
+            if (!north || !south || !west || !east){
                 return BlockPathTypes.WALKABLE;
             }
             return BlockPathTypes.FENCE;
         }
 
-        // Let AlyxPathLogic modify other block types
         BlockPathTypes original = super.getBlockPathType(level, pos.getX(), pos.getY(), pos.getZ());
-        return AlyxPathLogic.overridePathType(original, state);
+        return original;
     }
 
 
