@@ -16,27 +16,24 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
 
     @Override
     public BlockPathTypes getBlockPathType(BlockGetter level, int x, int y, int z) {
-        //Evaluate current block pos
         BlockPos pos = new BlockPos(x, y, z);
-        BlockPathTypes currentType = evaluateBlock(level, pos);
-
-        //Evaluate block below (ordinarily for AlyxPathLogic)
         BlockPos posBelow = pos.below();
-        BlockPathTypes belowType = evaluateBlock(level, posBelow);
 
-        // For debugging: print out the types for both levels.
-        System.out.println("Current pos " + pos + " type: " + currentType + " | Below pos " + posBelow + " type: " + belowType);
+        BlockState state = level.getBlockState(pos);
+        BlockState stateBelow = level.getBlockState(posBelow);
 
-        // Combine the evaluations:
-        // Here, we assume that if the block below isn’t walkable, it’s a show-stopper.
-        BlockPathTypes finalType = belowType != BlockPathTypes.WALKABLE ? belowType : currentType;
+        BlockPathTypes type = evaluateBlock(level, pos);
+        BlockPathTypes typeBelow = evaluateBlock(level, posBelow);
 
-        // Finally, apply the AlyxPathLogic overrides to the chosen block state.
-        // Note: You may adjust this order depending on whether the override should consider both levels.
-        BlockState currentState = level.getBlockState(pos);
-        BlockPathTypes overridden = AlyxPathLogic.overridePathType(finalType, currentState);
+        System.out.println("Current pos " + pos + " type: " + type
+                + " | Below pos " + posBelow + " type: " + typeBelow);
 
-        System.out.println("Final override for pos " + pos + ": " + overridden);
+        // Determine the final path type based on both evaluations
+        BlockPathTypes finalType = (typeBelow != BlockPathTypes.WALKABLE) ? typeBelow : type;
+
+        // Apply AlyxPathLogic override to the block below
+        BlockPathTypes overridden = AlyxPathLogic.overridePathType(finalType, stateBelow);
+
         return overridden;
     }
 
@@ -58,7 +55,7 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
         }
 
         BlockPathTypes original = super.getBlockPathType(level, pos.getX(), pos.getY(), pos.getZ());
-        return original;
+        return AlyxPathLogic.overridePathType(original, state);
     }
 
 
