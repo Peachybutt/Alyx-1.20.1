@@ -1,8 +1,9 @@
-package net.peachybutt.AlyxAwakened.entity.custom.sub;
+package net.peachybutt.AlyxAwakened.entity.custom.sub.pathnavigation;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
@@ -17,12 +18,15 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
         BlockPos pos = new BlockPos(x, y, z);
         BlockState stateBelow = level.getBlockState(pos.below());
         BlockState state = level.getBlockState(pos);
+        Block block = state.getBlock();
         BlockPathTypes original = super.getBlockPathType(level, x, y, z);
 
-        BlockPathTypes overridden = AlyxPathLogic.overridePathType(original, stateBelow);
 
-        return overridden;
+
+        // This section basically introduces AlyxPathLogic blocks telling Alyx where to walk and prefer to walk.
+        return AlyxPathLogic.overridePathType(original, stateBelow);
     }
+
 
 
     @Override

@@ -1,5 +1,6 @@
 package net.peachybutt.AlyxAwakened.entity.custom;
 
+import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvent;
@@ -8,18 +9,22 @@ import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.peachybutt.AlyxAwakened.entity.custom.sub.AlyxGroundPathNav;
+import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.AlyxBrain;
+import net.peachybutt.AlyxAwakened.entity.custom.sub.pathnavigation.AlyxGroundPathNav;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -28,6 +33,7 @@ import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.Set;
 import java.util.UUID;
 
 public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
@@ -45,8 +51,22 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     }
 
     @Override
-    protected PathNavigation createNavigation(Level level) {
-        return new AlyxGroundPathNav(this, level);
+    protected Brain.Provider<AlyxEntity> brainProvider() {
+        return Brain.provider(
+                Set.of(MemoryModuleType.WALK_TARGET, MemoryModuleType.NEAREST_VISIBLE_PLAYER),
+                Set.of(SensorType.HURT_BY, SensorType.NEAREST_PLAYERS, SensorType.NEAREST_LIVING_ENTITIES)
+        );
+    }
+
+    @Override
+    protected Brain<?> makeBrain(Dynamic<?> dynamic) {
+        return AlyxBrain.makeBrain(this, this.brainProvider().makeBrain(dynamic));
+    }
+
+
+    @Override
+    protected PathNavigation createNavigation(Level pLevel) {
+        return new AlyxGroundPathNav(this, pLevel);
     }
 
     public static AttributeSupplier setAttributes() { //these are the stats for our entity
