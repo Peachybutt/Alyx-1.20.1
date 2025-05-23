@@ -25,12 +25,24 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
         BlockPathTypes original = super.getBlockPathType(level, x, y, z);
 
 
+        if (block instanceof FenceBlock) {
+
+            boolean northConnected = state.getValue(FenceBlock.NORTH);
+            boolean southConnected = state.getValue(FenceBlock.SOUTH);
+            boolean eastConnected = state.getValue(FenceBlock.EAST);
+            boolean westConnected = state.getValue(FenceBlock.WEST);
+
+            System.out.println("Fence at " + pos + " has open sides:");
+            if (northConnected) System.out.println(" - NORTH");
+            if (southConnected) System.out.println(" - SOUTH");
+            if (eastConnected) System.out.println(" - EAST");
+            if (westConnected) System.out.println(" - WEST");
+        }
+
 
         // This section basically introduces AlyxPathLogic blocks telling Alyx where to walk and prefer to walk.
         return AlyxPathLogic.overridePathType(original, stateBelow);
     }
-
-
 
     @Override
     public BlockPathTypes getBlockPathType(Mob mob, BlockPos pos) {
