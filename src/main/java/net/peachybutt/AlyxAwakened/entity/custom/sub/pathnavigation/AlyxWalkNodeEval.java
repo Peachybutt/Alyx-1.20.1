@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.peachybutt.AlyxAwakened.entity.custom.ModPathTypes;
 
 public class AlyxWalkNodeEval extends WalkNodeEvaluator {
     public AlyxWalkNodeEval() {
@@ -32,11 +33,8 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
             boolean eastConnected = state.getValue(FenceBlock.EAST);
             boolean westConnected = state.getValue(FenceBlock.WEST);
 
-            System.out.println("Fence at " + pos + " has open sides:");
-            if (northConnected) System.out.println(" - NORTH");
-            if (southConnected) System.out.println(" - SOUTH");
-            if (eastConnected) System.out.println(" - EAST");
-            if (westConnected) System.out.println(" - WEST");
+
+            if (northConnected || southConnected || eastConnected || westConnected) return ModPathTypes.PARTIAL_PASSABLE;
         }
 
 

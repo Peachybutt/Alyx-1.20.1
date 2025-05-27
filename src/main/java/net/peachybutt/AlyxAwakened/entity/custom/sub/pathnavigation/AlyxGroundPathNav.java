@@ -75,7 +75,6 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
     @Override
     protected Vec3 getTempMobPos() {
         Node currentNode = path.getNextNode();
-        System.out.println("getTempMobPos triggered for " + this.mob.getName().getString());
 
 
         BlockPos pos = new BlockPos(currentNode.x, currentNode.y, currentNode.z);
@@ -86,16 +85,24 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
         if (type == ModPathTypes.PARTIAL_PASSABLE) {
             Direction openDir = getOpenFenceSide(pos);
             Vec3 offset = switch (openDir) {
-                case NORTH -> new Vec3(0, 0, -0.3);
-                case SOUTH -> new Vec3(0, 0, 0.3);
-                case WEST -> new Vec3(-0.3, 0, 0);
-                case EAST -> new Vec3(0.3, 0, 0);
+                case NORTH -> new Vec3(0, 0, -1);
+                case SOUTH -> new Vec3(0, 0, 0.425);
+                case WEST -> new Vec3(-0.425, 0, 0);
+                case EAST -> new Vec3(0.425, 0, 0);
                 default -> Vec3.ZERO;
             };
             destination = destination.add(offset);
-            System.out.println("getTempDestination called, current destination:" + destination);
+            System.out.println("BlockPathType at node: " + type + " for position: " + pos);
+            System.out.println("Open side found: " + openDir);
+            System.out.println("Final movement destination: " + destination);
         }
 
         return destination;
+    }
+
+    @Override
+    public boolean isStableDestination(BlockPos pos) {
+        BlockPathTypes type = this.nodeEvaluator.getBlockPathType(this.level, pos.getX(), pos.getY(), pos.getZ());
+        return type == ModPathTypes.PARTIAL_PASSABLE || super.isStableDestination(pos);
     }
 }

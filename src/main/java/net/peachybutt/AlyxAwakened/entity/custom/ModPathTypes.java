@@ -7,5 +7,5 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 
 public class ModPathTypes {
-    public static final BlockPathTypes PARTIAL_PASSABLE = BlockPathTypes.create("PARTIAL_PASSABLE",1f);
+    public static final BlockPathTypes PARTIAL_PASSABLE = BlockPathTypes.create("PARTIAL_PASSABLE",1.0F);
 }

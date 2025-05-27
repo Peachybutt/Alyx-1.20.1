@@ -48,6 +48,7 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.COCOA, 0.0F); //Defined in AlyxPathLogic
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F); //Defined in AlyxPathLogic
+        this.setPathfindingMalus(ModPathTypes.PARTIAL_PASSABLE, 1.0F);
     }
 
     @Override
