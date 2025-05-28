@@ -119,4 +119,12 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
                 1.0
         );
     }
+
+    @Override
+    public void tick() {
+        if (!this.isDone()) {
+            followCustomPath();
+        }
+    }
+
 }
