@@ -16,17 +16,19 @@ import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
 import net.peachybutt.AlyxAwakened.entity.custom.ModPathTypes;
 
+import java.util.List;
+
 public class AlyxGroundPathNav extends GroundPathNavigation {
     private AlyxWalkNodeEval alyxNodeEvaluator;
     private AlyxPathLogic alyxPathLogic;
 
-    public AlyxGroundPathNav(Mob mob, Level level) {
+    public AlyxGroundPathNav(Mob mob, Level level) { //Constructor
         super(mob, level);
-        System.out.println("alyxGroundPathNav initialized!!!");
+        System.out.println("alyxGroundPathNav initialized!!!"); //Debug, will usually initialize twice?
     }
 
     @Override
-    public void setCanFloat(boolean canFloat) {
+    public void setCanFloat(boolean canFloat) { //Can float goal, necessary
         if (this.alyxNodeEvaluator != null) {
             this.alyxNodeEvaluator.setCanFloat(canFloat);
         }
@@ -47,7 +49,7 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
     }
 
 
-    private Direction getOpenFenceSide(BlockPos pos) {
+    private Direction getOpenFenceSide(BlockPos pos) { //Partial passable general code, remove?
         BlockState state = this.level.getBlockState(pos);
 
         if (!(state.getBlock() instanceof FenceBlock fenceBlock)) {
@@ -73,7 +75,7 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
     }
 
     @Override
-    protected Vec3 getTempMobPos() {
+    protected Vec3 getTempMobPos() { //Temp displacement for partial passable movement, remove
         Node currentNode = path.getNextNode();
 
 
@@ -101,8 +103,20 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
     }
 
     @Override
-    public boolean isStableDestination(BlockPos pos) {
+    public boolean isStableDestination(BlockPos pos) { //Debug code to force Partial Passable movement, remove
         BlockPathTypes type = this.nodeEvaluator.getBlockPathType(this.level, pos.getX(), pos.getY(), pos.getZ());
         return type == ModPathTypes.PARTIAL_PASSABLE || super.isStableDestination(pos);
+    }
+
+    public void followCustomPath(List<BlockPos> path) { //Loop with AlyxPathNode for custom pathfinding
+        if (path.isEmpty()) return;
+
+        BlockPos nextTarget = path.get(0);
+        this.mob.getNavigation().moveTo(
+                nextTarget.getX() + 0.5,
+                nextTarget.getY(),
+                nextTarget.getZ() + 0.5,
+                1.0
+        );
     }
 }

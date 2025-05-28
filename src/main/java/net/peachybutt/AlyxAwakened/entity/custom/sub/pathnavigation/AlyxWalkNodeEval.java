@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.peachybutt.AlyxAwakened.entity.custom.ModPathTypes;
@@ -24,7 +25,6 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
         BlockState state = level.getBlockState(pos);
         Block block = state.getBlock();
         BlockPathTypes original = super.getBlockPathType(level, x, y, z);
-
 
         if (block instanceof FenceBlock) {
 
