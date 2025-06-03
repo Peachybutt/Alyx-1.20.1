@@ -20,7 +20,7 @@ public class AlyxPathNode { //Custom node structure
         this.parent = parent;
     }
 
-    private List<BlockPos> reconstructPath(AlyxPathNode endNode) {
+    public List<BlockPos> reconstructPath(AlyxPathNode endNode) {
         List<BlockPos> path = new ArrayList<>();
         AlyxPathNode current = endNode;
 
@@ -37,11 +37,15 @@ public class AlyxPathNode { //Custom node structure
     public List<BlockPos> findCustomPath(BlockPos start, BlockPos goal, ServerLevel level) { //Custom pathfinder implementation
         Queue<AlyxPathNode> frontier = new LinkedList<>();
         Set<BlockPos> visited = new HashSet<>();
-
+        int maxNodes = 1000;
+        int nodeCount = 0;
+        System.out.println("findCustomPath called");
         frontier.add(new AlyxPathNode(start, 0, null));
 
-        while (!frontier.isEmpty()) {
+        while (!frontier.isEmpty() && nodeCount < maxNodes) {
             AlyxPathNode current = frontier.poll();
+            nodeCount++;
+
             if (current.pos.equals(goal)) {
                 return reconstructPath(current);
             }

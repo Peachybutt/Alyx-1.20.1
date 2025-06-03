@@ -1,5 +1,6 @@
 package net.peachybutt.AlyxAwakened.entity.custom;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -36,6 +37,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Set;
 import java.util.UUID;
 
+//Current ideas for to do in alyx; Generate seeded data, particularly a PERSONALITY and mood values that alter what she does (including reputation and similar values).
+//To go above and beyond for this we should be making custom animations for each PERSONALITY whereas the mood values will alter what she actually can do.
+
+
+
+
 public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     private AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int remainingPersistentAngerTime;
@@ -48,14 +55,16 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.COCOA, 0.0F); //Defined in AlyxPathLogic
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F); //Defined in AlyxPathLogic
-        this.setPathfindingMalus(ModPathTypes.PARTIAL_PASSABLE, 1.0F);
     }
 
     @Override
     protected Brain.Provider<AlyxEntity> brainProvider() {
         return Brain.provider(
-                Set.of(MemoryModuleType.WALK_TARGET, MemoryModuleType.NEAREST_VISIBLE_PLAYER),
-                Set.of(SensorType.HURT_BY, SensorType.NEAREST_PLAYERS, SensorType.NEAREST_LIVING_ENTITIES)
+            ImmutableList.of(
+                    MemoryModuleType.ATTACK_TARGET,
+                    MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES
+            ),
+                ImmutableList.of()
         );
     }
 

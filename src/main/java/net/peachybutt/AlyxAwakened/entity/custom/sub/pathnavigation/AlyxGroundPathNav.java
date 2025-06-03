@@ -16,11 +16,13 @@ import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
 import net.peachybutt.AlyxAwakened.entity.custom.ModPathTypes;
 
+import java.util.Collections;
 import java.util.List;
 
 public class AlyxGroundPathNav extends GroundPathNavigation {
     private AlyxWalkNodeEval alyxNodeEvaluator;
     private AlyxPathLogic alyxPathLogic;
+    private List<BlockPos> customPath = Collections.emptyList();
 
     public AlyxGroundPathNav(Mob mob, Level level) { //Constructor
         super(mob, level);
@@ -45,11 +47,11 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
         this.nodeEvaluator = this.alyxNodeEvaluator;
 
         this.alyxPathLogic = new AlyxPathLogic();
-        return new PathFinder(this.alyxNodeEvaluator, maxVisitedNodes);
+        return new PathFinder(this.alyxNodeEvaluator, 500);
     }
 
 
-    private Direction getOpenFenceSide(BlockPos pos) { //Partial passable general code, remove?
+    public Direction getOpenFenceSide(BlockPos pos) { //Partial passable general code, remove?
         BlockState state = this.level.getBlockState(pos);
 
         if (!(state.getBlock() instanceof FenceBlock fenceBlock)) {
@@ -87,7 +89,7 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
         if (type == ModPathTypes.PARTIAL_PASSABLE) {
             Direction openDir = getOpenFenceSide(pos);
             Vec3 offset = switch (openDir) {
-                case NORTH -> new Vec3(0, 0, -1);
+                case NORTH -> new Vec3(0, 0, -0.9);
                 case SOUTH -> new Vec3(0, 0, 0.425);
                 case WEST -> new Vec3(-0.425, 0, 0);
                 case EAST -> new Vec3(0.425, 0, 0);
@@ -108,23 +110,53 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
         return type == ModPathTypes.PARTIAL_PASSABLE || super.isStableDestination(pos);
     }
 
-    public void followCustomPath(List<BlockPos> path) { //Loop with AlyxPathNode for custom pathfinding
-        if (path.isEmpty()) return;
 
-        BlockPos nextTarget = path.get(0);
-        this.mob.getNavigation().moveTo(
-                nextTarget.getX() + 0.5,
-                nextTarget.getY(),
-                nextTarget.getZ() + 0.5,
-                1.0
-        );
+
+
+
+    //Custom path shi
+
+
+    public void followCustomPath(List<BlockPos> path) {
+        if (this.path == null || this.path.isDone()) return;
+        System.out.println("followCustomPath called");
+        Node currentNode = this.path.getNextNode();
+        BlockPos pos = new BlockPos(currentNode.x, currentNode.y, currentNode.z);
+        BlockPathTypes type = this.nodeEvaluator.getBlockPathType(this.level, pos.getX(), pos.getY(), pos.getZ());
+
+        Vec3 destination = new Vec3(currentNode.x + 0.5, currentNode.y, currentNode.z + 0.5);
+
+        if (type == ModPathTypes.PARTIAL_PASSABLE) {
+            Direction openDir = getOpenFenceSide(pos);
+            Vec3 offset = switch (openDir) {
+                case NORTH -> new Vec3(0, 0, -0.3);
+                case SOUTH -> new Vec3(0, 0, 0.3);
+                case WEST -> new Vec3(-0.3, 0, 0);
+                case EAST -> new Vec3(0.3, 0, 0);
+                default -> Vec3.ZERO;
+            };
+            destination = destination.add(offset);
+        }
+
+        this.mob.getMoveControl().setWantedPosition(destination.x, destination.y, destination.z, this.speedModifier);
+    }
+
+
+     public void setCustomPath(List<BlockPos> path) {
+        this.customPath = path;
+        if (!path.isEmpty()) {
+            this.stop(); // Stop built-in path
+            followCustomPath(path); // Manual movement
+        }
     }
 
     @Override
     public void tick() {
-        if (!this.isDone()) {
-            followCustomPath();
-        }
+        //if (customPath.isEmpty()) { //This is bypassed currently for debugging
+        // followCustomPath(customPath); //Custom pathfinding behavior
+        //} else {
+        super.tick(); //Fallback to vanilla
+        //}
     }
 
 }
