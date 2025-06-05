@@ -2,6 +2,7 @@ package net.peachybutt.AlyxAwakened.entity.custom.sub.brain;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.behavior.warden.Digging;
@@ -12,14 +13,16 @@ import net.minecraft.world.entity.schedule.Activity;
 import net.peachybutt.AlyxAwakened.entity.custom.AlyxEntity;
 import net.peachybutt.AlyxAwakened.entity.custom.ModMemoryTypes;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.activities.AlyxStandardActivities;
+import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.AlyxMeleeAttack;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.TargetEntity;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.WalkToMemoryPosition;
-
+import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.WalkToTarget;
 
 
 public class AlyxBrain {
     public static Brain<?> makeBrain(AlyxEntity alyx, Brain<AlyxEntity> brain) {
         initCoreActivities(brain);
+        System.out.println("Brain called");
         brain.setActiveActivityIfPossible(Activity.CORE);
         //initStandardActivities(brain);
         return brain;
@@ -29,7 +32,9 @@ public class AlyxBrain {
         brain.addActivity(Activity.CORE, 0,
                 ImmutableList.of(
                         new LookAtTargetSink(45, 90),
-                        new TargetEntity<>(Creeper.class, creeper -> true), //attacks visible creepers
+                        new TargetEntity<>(Creeper.class, creeper -> true), //set visible creepers as target
+                        new WalkToTarget<>(),
+                        new AlyxMeleeAttack(20),
                         new MoveToTargetSink()
                 ));
     }

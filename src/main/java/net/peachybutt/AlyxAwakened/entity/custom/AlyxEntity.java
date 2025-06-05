@@ -3,6 +3,7 @@ package net.peachybutt.AlyxAwakened.entity.custom;
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
@@ -60,17 +62,22 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     @Override
     protected Brain.Provider<AlyxEntity> brainProvider() {
         return Brain.provider(
-            ImmutableList.of(
-                    MemoryModuleType.ATTACK_TARGET,
-                    MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES
-            ),
-                ImmutableList.of()
+                ImmutableList.of(
+                        MemoryModuleType.ATTACK_TARGET,
+                        MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+                        MemoryModuleType.WALK_TARGET
+                ),
+                ImmutableList.of(
+                        ModSensorTypes.ALYX_NEAREST_LIVING_ENTITIES.get()
+                )
         );
     }
 
     @Override
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
-        return AlyxBrain.makeBrain(this, this.brainProvider().makeBrain(dynamic));
+        Brain.Provider<AlyxEntity> provider = this.brainProvider();
+        Brain<AlyxEntity> brain = provider.makeBrain(dynamic);
+        return AlyxBrain.makeBrain(this, brain);
     }
 
 
@@ -87,16 +94,16 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
                 .add(Attributes.MOVEMENT_SPEED, 0.4f).build();
     }
 
-    @Override
-    protected void registerGoals() {
-        this.goalSelector.addGoal(goalCount, new FloatGoal(this));
-        this.goalSelector.addGoal(goalCount++, new MeleeAttackGoal(this, 1.2D, false));
-        this.goalSelector.addGoal(goalCount++, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(goalCount++, new LookAtPlayerGoal(this, Player.class, 3f));
-        this.goalSelector.addGoal(goalCount++, new RandomLookAroundGoal(this));
+    //@Override
+    //protected void registerGoals() {
+    //    this.goalSelector.addGoal(goalCount, new FloatGoal(this));
+    //    this.goalSelector.addGoal(goalCount++, new MeleeAttackGoal(this, 1.2D, false));
+    //    this.goalSelector.addGoal(goalCount++, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+    //    this.goalSelector.addGoal(goalCount++, new LookAtPlayerGoal(this, Player.class, 3f));
+    //    this.goalSelector.addGoal(goalCount++, new RandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(goalCount++, new NearestAttackableTargetGoal<>(this, Creeper.class, true));
-    }
+    //    this.targetSelector.addGoal(goalCount++, new NearestAttackableTargetGoal<>(this, Creeper.class, true));
+    //}
 
     @Override
     public SpawnGroupData finalizeSpawn(

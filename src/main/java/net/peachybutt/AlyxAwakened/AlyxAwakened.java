@@ -22,6 +22,7 @@ import net.peachybutt.AlyxAwakened.block.ModBlocks;
 import net.peachybutt.AlyxAwakened.entity.client.AlyxRenderer;
 import net.peachybutt.AlyxAwakened.entity.ModEntities;
 import net.peachybutt.AlyxAwakened.entity.custom.ModMemoryTypes;
+import net.peachybutt.AlyxAwakened.entity.custom.ModSensorTypes;
 import net.peachybutt.AlyxAwakened.item.ModCreativeModeTabs;
 import net.peachybutt.AlyxAwakened.item.ModItems;
 import org.slf4j.Logger;
@@ -47,6 +48,7 @@ public class AlyxAwakened {
         ModBlocks.register(modEventBus);
         ModEntities.register(modEventBus);
         ModMemoryTypes.register(modEventBus);
+        ModSensorTypes.init(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
 

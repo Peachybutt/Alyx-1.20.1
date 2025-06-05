@@ -46,6 +46,7 @@ public class TargetEntity<E extends Mob, T extends LivingEntity> extends Behavio
         List<LivingEntity> visible = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES)
                 .map(list -> (List<LivingEntity>) list)
                 .orElse(List.of());
+        System.out.println("TargetEntity called");
 
         Optional<T> target = visible.stream()
                 .filter(e -> targetClass.isInstance(e) && filter.test(targetClass.cast(e)))
