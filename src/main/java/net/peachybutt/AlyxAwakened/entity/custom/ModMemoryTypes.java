@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.level.block.DoubleBlockCombiner;
 import net.minecraft.world.level.gameevent.EntityPositionSource;
 import net.minecraftforge.eventbus.api.IEventBus;

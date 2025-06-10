@@ -13,18 +13,16 @@ import net.minecraft.world.entity.schedule.Activity;
 import net.peachybutt.AlyxAwakened.entity.custom.AlyxEntity;
 import net.peachybutt.AlyxAwakened.entity.custom.ModMemoryTypes;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.activities.AlyxStandardActivities;
-import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.AlyxMeleeAttack;
-import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.TargetEntity;
-import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.WalkToMemoryPosition;
-import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.WalkToTarget;
+import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.*;
 
 
 public class AlyxBrain {
     public static Brain<?> makeBrain(AlyxEntity alyx, Brain<AlyxEntity> brain) {
         initCoreActivities(brain);
+        initFightActivity(brain);
         System.out.println("Brain called");
         brain.setActiveActivityIfPossible(Activity.CORE);
-        //initStandardActivities(brain);
+        brain.setActiveActivityIfPossible(Activity.FIGHT);
         return brain;
     }
 
@@ -32,8 +30,9 @@ public class AlyxBrain {
         brain.addActivity(Activity.CORE, 0,
                 ImmutableList.of(
                         new LookAtTargetSink(45, 90),
+                        new MoveToTargetSink(),
                         new TargetEntity<>(Creeper.class, creeper -> true), //set visible creepers as target
-                        new WalkToTarget<>(),
+                        //new WalkToTarget<>(),
                         new AlyxMeleeAttack(20),
                         new MoveToTargetSink()
                 ));
@@ -43,6 +42,16 @@ public class AlyxBrain {
         brain.addActivity(AlyxStandardActivities.PATROL, 1,
                 ImmutableList.of(
                         new WalkToMemoryPosition<>(ModMemoryTypes.EXAMPLE_BLOCK_MEM_MOD.get(), 1.0F)
+                ));
+    }
+
+    private static void initFightActivity(Brain<AlyxEntity> brain) {
+        brain.addActivity(Activity.FIGHT, 10,
+                ImmutableList.of(
+                        new TargetEntity<>(Creeper.class, creeper -> true),
+                        new MoveToTargetSink(),
+                        new AlyxWalkToTargetIfOutOfReach(20),
+                        new AlyxMeleeAttack(20)
                 ));
     }
 }

@@ -10,18 +10,19 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 
+import static net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET;
+
 public class WalkToTarget<E extends PathfinderMob> extends Behavior<E> {
     private final float speedModifier;
     private final int closeEnoughDist;
 
     public WalkToTarget() {
-        this(1.0F, 2);
+        this(80.0F, 1);
     }
 
     public WalkToTarget(float speedModifier, int closeEnoughDist) {
         super(ImmutableMap.of(
-                MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT,
-                MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT
+                MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT
         ));
         this.speedModifier = speedModifier;
         this.closeEnoughDist = closeEnoughDist;
@@ -30,7 +31,11 @@ public class WalkToTarget<E extends PathfinderMob> extends Behavior<E> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
         LivingEntity target = entity.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).orElse(null);
-        return target != null && target.isAlive() && entity.distanceToSqr(target) > closeEnoughDist * closeEnoughDist;
+        if (target == null || !target.isAlive()) return false;
+
+        boolean alreadyWalking = entity.getBrain().hasMemoryValue(MemoryModuleType.WALK_TARGET);
+        double dist = entity.distanceToSqr(target);
+        return dist > closeEnoughDist * closeEnoughDist && !alreadyWalking;
     }
 
     @Override
@@ -39,7 +44,7 @@ public class WalkToTarget<E extends PathfinderMob> extends Behavior<E> {
         if (target != null) {
             System.out.println("WalkToTarget called");
             entity.getBrain().setMemory(
-                    MemoryModuleType.WALK_TARGET,
+                    WALK_TARGET,
                     new WalkTarget(new EntityTracker(target, true), speedModifier, closeEnoughDist)
             );
         }

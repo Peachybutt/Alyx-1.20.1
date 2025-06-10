@@ -19,7 +19,8 @@ public class ModSensorTypes {
     public static final DeferredRegister<SensorType<?>> SENSOR_TYPES =
             DeferredRegister.create(Registries.SENSOR_TYPE, "alyx_awakened");
 
-    public static final Supplier<SensorType<AlyxNearestLivingEntitySensor>> ALYX_NEAREST_LIVING_ENTITIES =
+    //Here is our sensors, ngl i've got no clue where we actually use this lol
+    public static final RegistryObject<SensorType<AlyxNearestLivingEntitySensor>> ALYX_NEAREST_LIVING_ENTITIES =
             SENSOR_TYPES.register("alyx_nearest_living_entities",
                     () -> new SensorType<>(AlyxNearestLivingEntitySensor::new)
             );

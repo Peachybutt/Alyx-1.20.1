@@ -48,6 +48,8 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
         this.alyxPathLogic = new AlyxPathLogic();
         return new PathFinder(this.alyxNodeEvaluator, 500);
+
+
     }
 
 
@@ -85,6 +87,7 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
         BlockPathTypes type = this.nodeEvaluator.getBlockPathType(this.level, pos.getX(), pos.getY(), pos.getZ());
 
         Vec3 destination = new Vec3(currentNode.x + 0.5, currentNode.y, currentNode.z + 0.5);
+
 
         if (type == ModPathTypes.PARTIAL_PASSABLE) {
             Direction openDir = getOpenFenceSide(pos);
@@ -152,11 +155,14 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
     @Override
     public void tick() {
-        //if (customPath.isEmpty()) { //This is bypassed currently for debugging
-        // followCustomPath(customPath); //Custom pathfinding behavior
-        //} else {
+        if (customPath.isEmpty()) {
+         followCustomPath(customPath); //Custom pathfinding behavior
+        } else {
         super.tick(); //Fallback to vanilla
-        //}
+        }
+        if (this.isInProgress()) {
+            System.out.println("[NAV TICK] Moving to: " + this.getTargetPos());
+        }
     }
 
 }

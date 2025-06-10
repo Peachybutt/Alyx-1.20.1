@@ -5,6 +5,7 @@ import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.TimeUtil;
@@ -65,6 +66,7 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
                 ImmutableList.of(
                         MemoryModuleType.ATTACK_TARGET,
                         MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+                        MemoryModuleType.LOOK_TARGET,
                         MemoryModuleType.WALK_TARGET
                 ),
                 ImmutableList.of(
@@ -128,6 +130,15 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         super.aiStep();
         this.updateSwingTime();
     }
+
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        this.level().getProfiler().push("alyxBrain");
+        ((Brain<AlyxEntity>) this.getBrain()).tick((ServerLevel) this.level(), this);
+        this.level().getProfiler().pop();
+    }
+
 
     private void updateSwingTime(int i) {
     }

@@ -9,6 +9,7 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.entity.monster.Creeper;
 import net.peachybutt.AlyxAwakened.entity.custom.AlyxEntity;
 
@@ -31,30 +32,23 @@ public class TargetEntity<E extends Mob, T extends LivingEntity> extends Behavio
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        List<LivingEntity> visible = mob.getBrain()
-                .getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES)
-                .map(list -> (List<LivingEntity>) list)
-                .orElse(List.of());
+        Optional<NearestVisibleLivingEntities> visibleOpt = mob.getBrain()
+                .getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
 
-        return visible.stream()
-                .anyMatch(e -> targetClass.isInstance(e) && filter.test(targetClass.cast(e)));
+        return visibleOpt
+                .flatMap(visible -> visible.findClosest(e -> targetClass.isInstance(e) && filter.test(targetClass.cast(e))))
+                .isPresent();
     }
 
     @Override
     protected void start(ServerLevel level, E mob, long gameTime) {
         Brain<?> brain = mob.getBrain();
-        List<LivingEntity> visible = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES)
-                .map(list -> (List<LivingEntity>) list)
-                .orElse(List.of());
-        System.out.println("TargetEntity called");
+        Optional<NearestVisibleLivingEntities> visibleOpt = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
 
-        Optional<T> target = visible.stream()
-                .filter(e -> targetClass.isInstance(e) && filter.test(targetClass.cast(e)))
-                .map(e -> targetClass.cast(e))
-                .findFirst();
-
-        target.ifPresent(t -> {
-            brain.setMemory(MemoryModuleType.ATTACK_TARGET, t);
-        });
+        visibleOpt.flatMap(visible -> visible.findClosest(e -> targetClass.isInstance(e) && filter.test(targetClass.cast(e))))
+                .ifPresent(target -> {
+                    brain.setMemory(MemoryModuleType.ATTACK_TARGET, target);
+                    System.out.println("TargetEntity: Attack target set to " + target);
+                });
     }
 }
