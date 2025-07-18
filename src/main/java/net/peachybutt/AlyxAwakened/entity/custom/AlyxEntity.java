@@ -15,18 +15,24 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeMod;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.AlyxBrain;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.pathnavigation.AlyxGroundPathNav;
 import org.jetbrains.annotations.Nullable;
@@ -56,6 +62,8 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
 
     public AlyxEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) { //This is our super that constructs the entity
         super(pEntityType, pLevel);
+        this.moveControl = new MoveControl(this);
+        this.refreshDimensions();
         this.setPathfindingMalus(BlockPathTypes.COCOA, 0.0F); //Defined in AlyxPathLogic
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F); //Defined in AlyxPathLogic
     }
@@ -67,7 +75,9 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
                         MemoryModuleType.ATTACK_TARGET,
                         MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
                         MemoryModuleType.LOOK_TARGET,
-                        MemoryModuleType.WALK_TARGET
+                        MemoryModuleType.WALK_TARGET,
+                        MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
+                        MemoryModuleType.PATH
                 ),
                 ImmutableList.of(
                         ModSensorTypes.ALYX_NEAREST_LIVING_ENTITIES.get()
@@ -96,16 +106,22 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
                 .add(Attributes.MOVEMENT_SPEED, 0.4f).build();
     }
 
-    //@Override
-    //protected void registerGoals() {
-    //    this.goalSelector.addGoal(goalCount, new FloatGoal(this));
-    //    this.goalSelector.addGoal(goalCount++, new MeleeAttackGoal(this, 1.2D, false));
-    //    this.goalSelector.addGoal(goalCount++, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-    //    this.goalSelector.addGoal(goalCount++, new LookAtPlayerGoal(this, Player.class, 3f));
-    //    this.goalSelector.addGoal(goalCount++, new RandomLookAroundGoal(this));
+    @Override
+    public EntityDimensions getDimensions(Pose pose) {
+        return EntityDimensions.scalable(0.6F, 1.95F); //Avg player height
+    }
 
-    //    this.targetSelector.addGoal(goalCount++, new NearestAttackableTargetGoal<>(this, Creeper.class, true));
-    //}
+
+    /*@Override
+    protected void registerGoals() {
+        this.goalSelector.addGoal(goalCount, new FloatGoal(this));
+        this.goalSelector.addGoal(goalCount++, new MeleeAttackGoal(this, 1.2D, false));
+        this.goalSelector.addGoal(goalCount++, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(goalCount++, new LookAtPlayerGoal(this, Player.class, 3f));
+        this.goalSelector.addGoal(goalCount++, new RandomLookAroundGoal(this));
+
+        this.targetSelector.addGoal(goalCount++, new NearestAttackableTargetGoal<>(this, Creeper.class, true));
+    }*/
 
     @Override
     public SpawnGroupData finalizeSpawn(
@@ -119,12 +135,6 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         return super.finalizeSpawn(level, difficulty, spawnType, groupData, tag);
     }
 
-    @Override
-    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
-        controllers.add(new AnimationController<>(this, "controller", 0, this::attackPredicate));
-    }
-
     @Override // This is only necessary if the Generic Attack Animation is not swinging.
     public void aiStep() {
         super.aiStep();
@@ -132,11 +142,48 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     }
 
     @Override
+    public void travel(Vec3 travelVec) {
+        System.out.println("[TRAVEL] Vector: " + travelVec + " | Delta: " + this.getDeltaMovement());
+        if (!this.isEffectiveAi()) return;
+
+        double gravity = 0.08;
+        if (!this.isNoGravity()) {
+            this.setDeltaMovement(this.getDeltaMovement().add(0, -gravity, 0));
+        }
+
+        if (this.onGround()) {
+            // Use entity's move speed
+            float speed = this.getSpeed(); // gets movement speed attribute
+            this.moveRelative(speed, travelVec);
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            this.setDeltaMovement(this.getDeltaMovement().multiply(0.91, 0.98, 0.91));
+        } else {
+            // Air movement
+            this.moveRelative(0.02f, travelVec);
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            this.setDeltaMovement(this.getDeltaMovement().multiply(0.91, 0.98, 0.91));
+        }
+
+        this.calculateEntityAnimation(false);
+    }
+
+
+    @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
         this.level().getProfiler().push("alyxBrain");
         ((Brain<AlyxEntity>) this.getBrain()).tick((ServerLevel) this.level(), this);
         this.level().getProfiler().pop();
+        this.getNavigation().tick();    //Nav tick, could bog down stuff so maybe delete if unnecessary.
+        this.getMoveControl().tick();
+        this.navigation.tick();
+        System.out.println("[MOVE CONTROL] delta = " + getDeltaMovement());
+    }
+
+    @Override
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
+        controllers.add(new AnimationController<>(this, "controller", 0, this::attackPredicate));
     }
 
 

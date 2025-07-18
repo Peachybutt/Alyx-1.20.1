@@ -30,11 +30,8 @@ public class AlyxBrain {
         brain.addActivity(Activity.CORE, 0,
                 ImmutableList.of(
                         new LookAtTargetSink(45, 90),
-                        new MoveToTargetSink(),
                         new TargetEntity<>(Creeper.class, creeper -> true), //set visible creepers as target
-                        //new WalkToTarget<>(),
-                        new AlyxMeleeAttack(20),
-                        new MoveToTargetSink()
+                        new AlyxMeleeAttack(20)
                 ));
     }
 
@@ -49,9 +46,9 @@ public class AlyxBrain {
         brain.addActivity(Activity.FIGHT, 10,
                 ImmutableList.of(
                         new TargetEntity<>(Creeper.class, creeper -> true),
-                        new MoveToTargetSink(),
-                        new AlyxWalkToTargetIfOutOfReach(20),
-                        new AlyxMeleeAttack(20)
+                        new AlyxWalkToTargetIfOutOfReach(2.0F),
+                        new AlyxMeleeAttack(20),
+                        new AlyxMoveToTarget()
                 ));
     }
 }

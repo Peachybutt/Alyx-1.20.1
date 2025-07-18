@@ -46,17 +46,17 @@ public class AlyxWalkToTargetIfOutOfReach extends Behavior<AlyxEntity> {
                     MemoryModuleType.WALK_TARGET,
                     new WalkTarget(new EntityTracker(target, true), speed, 2)
             );
+
+            // ⬇️ Debugging
+            System.out.println("[DEBUG] Attempting to set WALK_TARGET to: " + target.getName().getString());
+            alyx.getBrain().getMemory(MemoryModuleType.WALK_TARGET)
+                    .ifPresent(walkTarget -> System.out.println("[DEBUG] WALK_TARGET = " + walkTarget));
+
             if (!alyx.getNavigation().isInProgress()) {
-                System.out.println("[DEBUG] Alyx navigation is not in progress!");
+                System.out.println("[DEBUG] Alyx navigation is NOT in progress after setting WALK_TARGET!");
+            } else {
+                System.out.println("[DEBUG] Alyx IS navigating to WALK_TARGET.");
             }
-            System.out.println("[DEBUG] Current active activities: " + alyx.getBrain().getActiveActivities());
-
-
-            BlockPos targetPos = target.blockPosition(); //Debugging
-            BlockPathTypes type = alyx.getNavigation().getNodeEvaluator().getBlockPathType( //Debugging
-                    alyx.level(), targetPos.getX(), targetPos.getY(), targetPos.getZ()); //Debugging
-                                                                                        //Debugging
-            System.out.println("[DEBUG] BlockPathType at creeper position: " + type); //Debugging
 
         });
     }

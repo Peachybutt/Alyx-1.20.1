@@ -26,7 +26,6 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
     public AlyxGroundPathNav(Mob mob, Level level) { //Constructor
         super(mob, level);
-        System.out.println("alyxGroundPathNav initialized!!!"); //Debug, will usually initialize twice?
     }
 
     @Override
@@ -159,10 +158,20 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
          followCustomPath(customPath); //Custom pathfinding behavior
         } else {
         super.tick(); //Fallback to vanilla
+
+            // DEBUG CAN DELETE LATER
         }
         if (this.isInProgress()) {
             System.out.println("[NAV TICK] Moving to: " + this.getTargetPos());
         }
+        if (this.path != null) {
+            System.out.println("[DEBUG] Current path length: " + this.path.getNodeCount());
+            for (int i = 0; i < this.path.getNodeCount(); i++) {
+                Node node = this.path.getNode(i);
+                System.out.println("[DEBUG] Node " + i + ": " + node.asBlockPos());
+            }
+        }
+        //END OF DEBUG
     }
 
 }

@@ -34,7 +34,7 @@ public class AlyxModel extends GeoModel<AlyxEntity> {
 
     @Override
     public void setCustomAnimations(AlyxEntity animatable, long instanceId, AnimationState<AlyxEntity> animationState) {
-        CoreGeoBone head = getAnimationProcessor().getBone("head");
+        CoreGeoBone head = getAnimationProcessor().getBone("Root");
 
         if (head != null) {
             EntityModelData entityData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
