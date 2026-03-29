@@ -3,7 +3,6 @@ package net.peachybutt.AlyxAwakened.entity.custom;
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -16,24 +15,16 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
-import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.schedule.Activity;
+import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
-import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.AlyxBrain;
+import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.AlyxAi;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.pathnavigation.AlyxGroundPathNav;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -43,7 +34,6 @@ import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.Set;
 import java.util.UUID;
 
 //Current ideas for to do in alyx; Generate seeded data, particularly a PERSONALITY and mood values that alter what she does (including reputation and similar values).
@@ -53,12 +43,24 @@ import java.util.UUID;
 
 
 public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
+
+    //Generic referenced variables, etc
+
     private AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int remainingPersistentAngerTime;
     private int goalCount;
     private static final UniformInt PERSISTENT_ANGER_TIME;
     @Nullable
     private UUID persistentAngerTarget;
+    private int personality;
+
+    static {
+        SENSOR_TYPES = ImmutableList.of(ModSensorTypes.ALYX_NEAREST_LIVING_ENTITIES.get());
+        MEMORY_TYPES = ImmutableList.of(MemoryModuleType.ATTACK_TARGET, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH);
+    }
+
+    protected static final ImmutableList<SensorType<? extends Sensor<? super AlyxEntity>>> SENSOR_TYPES;
+    protected static final ImmutableList<MemoryModuleType<?>> MEMORY_TYPES;
 
     public AlyxEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) { //This is our super that constructs the entity
         super(pEntityType, pLevel);
@@ -68,28 +70,26 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F); //Defined in AlyxPathLogic
     }
 
+
+
+    //Brain
+
+
+
+
     @Override
     protected Brain.Provider<AlyxEntity> brainProvider() {
-        return Brain.provider(
-                ImmutableList.of(
-                        MemoryModuleType.ATTACK_TARGET,
-                        MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
-                        MemoryModuleType.LOOK_TARGET,
-                        MemoryModuleType.WALK_TARGET,
-                        MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
-                        MemoryModuleType.PATH
-                ),
-                ImmutableList.of(
-                        ModSensorTypes.ALYX_NEAREST_LIVING_ENTITIES.get()
-                )
-        );
+        return Brain.provider( MEMORY_TYPES, SENSOR_TYPES); //These memory/sensor types are provided within static variables above
     }
 
     @Override
-    protected Brain<?> makeBrain(Dynamic<?> dynamic) {
-        Brain.Provider<AlyxEntity> provider = this.brainProvider();
-        Brain<AlyxEntity> brain = provider.makeBrain(dynamic);
-        return AlyxBrain.makeBrain(this, brain);
+    protected Brain<?> makeBrain(Dynamic<?> pDynamic) {
+        return AlyxAi.makeBrain(this, this.brainProvider().makeBrain(pDynamic));
+    }
+
+    @Override
+    public Brain<AlyxEntity> getBrain() {
+        return (Brain<AlyxEntity>) super.getBrain();
     }
 
 
@@ -98,30 +98,60 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         return new AlyxGroundPathNav(this, pLevel);
     }
 
-    public static AttributeSupplier setAttributes() { //these are the stats for our entity
+    @Override
+    protected void customServerAiStep() {
+        this.level().getProfiler().push("alyxBrain");
+        this.getBrain().tick((ServerLevel) this.level(), this);
+        this.level().getProfiler().pop();
+        this.level().getProfiler().push("alyxActivityUpdate");
+        AlyxAi.updateActivity(this);
+        this.navigation.tick();
+        this.moveControl.tick();
+        super.customServerAiStep();
+    }
+
+    @Override // This is only necessary if the Generic Attack Animation is not swinging.
+    public void aiStep() {
+        super.aiStep();
+        this.updateSwingTime();
+    }
+
+
+    //Memory, saved data, generated data, etc
+
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("Personality", this.personality);
+    }
+
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setPersonality(pCompound.getInt("Personality"));
+    }
+
+    private void setPersonality(int pDemeanor) {
+        this.personality = pDemeanor;
+    }
+
+
+
+    //General
+
+
+
+
+    public static AttributeSupplier.Builder createAttributes() { //these are the stats for our entity
         return PathfinderMob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.ATTACK_DAMAGE, 3.0f)
                 .add(Attributes.ATTACK_SPEED, 1.0f)
-                .add(Attributes.MOVEMENT_SPEED, 0.4f).build();
+                .add(Attributes.MOVEMENT_SPEED, 0.4f);
     }
 
     @Override
     public EntityDimensions getDimensions(Pose pose) {
         return EntityDimensions.scalable(0.6F, 1.95F); //Avg player height
     }
-
-
-    /*@Override
-    protected void registerGoals() {
-        this.goalSelector.addGoal(goalCount, new FloatGoal(this));
-        this.goalSelector.addGoal(goalCount++, new MeleeAttackGoal(this, 1.2D, false));
-        this.goalSelector.addGoal(goalCount++, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(goalCount++, new LookAtPlayerGoal(this, Player.class, 3f));
-        this.goalSelector.addGoal(goalCount++, new RandomLookAroundGoal(this));
-
-        this.targetSelector.addGoal(goalCount++, new NearestAttackableTargetGoal<>(this, Creeper.class, true));
-    }*/
 
     @Override
     public SpawnGroupData finalizeSpawn(
@@ -135,59 +165,21 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         return super.finalizeSpawn(level, difficulty, spawnType, groupData, tag);
     }
 
-    @Override // This is only necessary if the Generic Attack Animation is not swinging.
-    public void aiStep() {
-        super.aiStep();
-        this.updateSwingTime();
-    }
-
-    @Override
-    public void travel(Vec3 travelVec) {
-        System.out.println("[TRAVEL] Vector: " + travelVec + " | Delta: " + this.getDeltaMovement());
-        if (!this.isEffectiveAi()) return;
-
-        double gravity = 0.08;
-        if (!this.isNoGravity()) {
-            this.setDeltaMovement(this.getDeltaMovement().add(0, -gravity, 0));
-        }
-
-        if (this.onGround()) {
-            // Use entity's move speed
-            float speed = this.getSpeed(); // gets movement speed attribute
-            this.moveRelative(speed, travelVec);
-            this.move(MoverType.SELF, this.getDeltaMovement());
-            this.setDeltaMovement(this.getDeltaMovement().multiply(0.91, 0.98, 0.91));
-        } else {
-            // Air movement
-            this.moveRelative(0.02f, travelVec);
-            this.move(MoverType.SELF, this.getDeltaMovement());
-            this.setDeltaMovement(this.getDeltaMovement().multiply(0.91, 0.98, 0.91));
-        }
-
-        this.calculateEntityAnimation(false);
-    }
 
 
-    @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
-        this.level().getProfiler().push("alyxBrain");
-        ((Brain<AlyxEntity>) this.getBrain()).tick((ServerLevel) this.level(), this);
-        this.level().getProfiler().pop();
-        this.getNavigation().tick();    //Nav tick, could bog down stuff so maybe delete if unnecessary.
-        this.getMoveControl().tick();
-        this.navigation.tick();
-        System.out.println("[MOVE CONTROL] delta = " + getDeltaMovement());
-    }
+
+    //Graphics, sound, animation, etc
+
+
 
     @Override
     public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
-        controllers.add(new AnimationController<>(this, "controller", 0, this::attackPredicate));
+        controllers.add(new AnimationController<>(this, "attack_controller", 0, this::attackPredicate));
     }
 
 
-    private void updateSwingTime(int i) {
+    private void updateSwingTime(int i) { //idk what this is/was/will be used for
     }
 
     protected <E extends PathfinderMob> PlayState predicate(AnimationState<AlyxEntity> alyxEntityAnimationState) {
@@ -201,8 +193,12 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     }
 
     private PlayState attackPredicate(AnimationState<AlyxEntity> alyxEntityAnimationState) {
-        alyxEntityAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.alyx.attack", Animation.LoopType.PLAY_ONCE));
-        return PlayState.CONTINUE;
+        if (this.swinging) {
+            alyxEntityAnimationState.getController().setAnimation(RawAnimation.begin()
+                    .then("animation.alyx.attack", Animation.LoopType.PLAY_ONCE));
+            return PlayState.CONTINUE;
+        }
+        return PlayState.STOP;
     }
 
     protected void playStepSound(BlockPos pos, BlockState blockIn) {
@@ -221,6 +217,14 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.cache;
     }
+
+
+
+
+    //Anger, Agro, Etc
+
+
+
 
     static {
         PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(1, 99); //Random angry time, grrr

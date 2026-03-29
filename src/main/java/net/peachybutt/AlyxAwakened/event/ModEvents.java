@@ -11,6 +11,7 @@ import net.peachybutt.AlyxAwakened.entity.custom.AlyxEntity;
 public class ModEvents {
     @SubscribeEvent
     public static void entityAttributeEvent(EntityAttributeCreationEvent event) {
-        event.put(ModEntities.ALYX.get(), AlyxEntity.setAttributes());
+        event.put(ModEntities.ALYX.get(), AlyxEntity.createAttributes().build());
+
     }
 }

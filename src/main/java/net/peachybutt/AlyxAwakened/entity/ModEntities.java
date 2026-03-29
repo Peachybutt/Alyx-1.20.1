@@ -17,7 +17,7 @@ public class ModEntities {
         public static final RegistryObject<EntityType<AlyxEntity>> ALYX =
                 ENTITY_TYPES.register("alyx",
                         () -> EntityType.Builder.of(AlyxEntity::new, MobCategory.MISC)
-                                .sized(0.4f, 1.0f)
+                                .sized(0.6f, 1.95f)
                                 .build(new ResourceLocation(AlyxAwakened.MOD_ID, "alyx").toString()));
 
         public static void register(IEventBus eventBus) {
