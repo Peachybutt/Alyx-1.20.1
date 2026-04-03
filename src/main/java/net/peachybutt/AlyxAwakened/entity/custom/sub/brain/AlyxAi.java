@@ -1,7 +1,6 @@
 package net.peachybutt.AlyxAwakened.entity.custom.sub.brain;
 
 import com.google.common.collect.ImmutableList;
-import javafx.scene.shape.MoveTo;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
@@ -30,9 +29,6 @@ public class AlyxAi {
         initIdleActivity(brain);
         initFightActivity(alyx, brain);
 
-        //Debug
-        System.out.println("Brain called");
-
 
         //Set activity sets
         brain.setActiveActivityIfPossible(Activity.CORE);
@@ -57,9 +53,11 @@ public class AlyxAi {
     private static void initFightActivity(AlyxEntity alyx, Brain<AlyxEntity> pBrain) {
         pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 10,
                 ImmutableList.of(
-                        StopAttackingIfTargetInvalid.create((target) -> !isNearestValidAttackTarget(alyx, target)),
+                        StopAttackingIfTargetInvalid.create((
+                                target) -> !isNearestValidAttackTarget(alyx, target)),
                         SetWalkTargetFromAttackTargetIfTargetOutOfReach.create(1.0F),
-                        MeleeAttack.create(20)), MemoryModuleType.ATTACK_TARGET);
+                        MeleeAttack.create(20)
+                ), MemoryModuleType.ATTACK_TARGET);
     }
 
     private static void initIdleActivity(Brain<AlyxEntity> brain) {
@@ -69,8 +67,12 @@ public class AlyxAi {
 
     // Bla bla bla
 
-    public static void updateActivity(AlyxEntity pAlyx) {
-        pAlyx.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.IDLE));
+    public static void updateActivity(AlyxEntity alyx) {
+        Brain<AlyxEntity> brain = alyx.getBrain();
+        brain.setActiveActivityToFirstValid(ImmutableList.of(
+                Activity.FIGHT,
+                Activity.IDLE
+        ));
     }
 
     private static boolean isNearestValidAttackTarget(AlyxEntity alyx, LivingEntity pTarget) {
@@ -80,26 +82,21 @@ public class AlyxAi {
     }
 
     private static Optional<? extends LivingEntity> findNearestValidAttackTarget(AlyxEntity alyx) {
-        Brain<AlyxEntity> brain = alyx.getBrain();
-        Optional<LivingEntity> optional = BehaviorUtils.getLivingEntityFromUUIDMemory(alyx, MemoryModuleType.ANGRY_AT);
-            if (optional.isPresent() && Sensor.isEntityAttackableIgnoringLineOfSight(alyx, (LivingEntity)optional.get())) {
-                return optional;
-            } else {
-                Optional optional3;
-                if (brain.hasMemoryValue(MemoryModuleType.UNIVERSAL_ANGER)) {
-                    optional3 = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER);
-                    if (optional3.isPresent()) {
-                        return optional3;
-                    }
-                }
+            Brain<AlyxEntity> brain = alyx.getBrain();
 
-                optional3 = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_NEMESIS);
-                if (optional3.isPresent()) {
-                    return optional3;
-                } else {
-                    Optional<Player> optional2 = brain.getMemory(MemoryModuleType.NEAREST_TARGETABLE_PLAYER_NOT_WEARING_GOLD);
-                    return optional2.isPresent() && Sensor.isEntityAttackable(alyx, (LivingEntity)optional2.get()) ? optional2 : Optional.empty();
-                }
-            }
+            return brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES)
+                    .flatMap(entities -> entities.findClosest(
+                            e -> isValidTarget(alyx, e)
+                    ));
+        }
+
+        private static boolean isValidTarget(AlyxEntity alyx, LivingEntity target) {
+            if (!Sensor.isEntityAttackable(alyx, target)) return false;
+
+            if (target instanceof Creeper) return true;
+
+            // can get nerdy and write more targets/conditions here
+
+            return false;
         }
     }

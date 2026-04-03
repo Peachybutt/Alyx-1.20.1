@@ -71,33 +71,36 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
 
     @Override
     public int getNeighbors(Node[] neighbors, Node currentNode) {
-        int count = 0;
+        int count = super.getNeighbors(neighbors, currentNode);
 
-        for (Direction dir : Direction.Plane.HORIZONTAL) {
-            int dx = currentNode.x + dir.getStepX();
-            int dy = currentNode.y;
-            int dz = currentNode.z + dir.getStepZ();
+        for (int i = 0; i < count; i++) {
+            Node node = neighbors[i];
+            BlockPathTypes pathType = this.getBlockPathType(this.level, node.x, node.y, node.z);
 
-            BlockPathTypes pathType = this.getBlockPathType(this.level, dx, dy, dz);
-
-            if (pathType == ModPathTypes.PARTIAL_PASSABLE && currentNode.g < 5) {
-                Direction openDir = getOpenFenceSide(new BlockPos(dx, dy, dz));
+            if (pathType == ModPathTypes.PARTIAL_PASSABLE) {
+                Direction openDir = getOpenFenceSide(new BlockPos(node.x, node.y, node.z));
                 if (openDir != null) {
-                    int sideX = dx + openDir.getStepX();
-                    int sideZ = dz + openDir.getStepZ();
+                    int sideX = node.x + openDir.getStepX();
+                    int sideZ = node.z + openDir.getStepZ();
 
-                    Node entryNode = this.getNode(sideX, dy, sideZ);
-                    entryNode.type = this.getBlockPathType(this.level, sideX, dy, sideZ);
+                    Node entryNode = this.getNode(sideX, node.y, sideZ);
+                    entryNode.type = this.getBlockPathType(this.level, sideX, node.y, sideZ);
 
-                    if (!entryNode.closed && entryNode.type != BlockPathTypes.BLOCKED)
-                        neighbors[count++] = entryNode;
+                    if (!entryNode.closed && entryNode.type != BlockPathTypes.BLOCKED) {
+                        neighbors[i] = entryNode; // replace the fence node with the gap node
+                    }
+                } else {
+                    // No open side found — fence is fully connected, treat as blocked
+                    neighbors[i] = null;
+                    count--;
                 }
             }
         }
         return count;
         // Add vertical movement if needed (stairs, slabs, etc)
-        // Possibly add diagonal or jump-over logic if you're extending support
+        // Possibly add diagonal or jump-over logic if you're billy (billy badass that is)
     }
+
 
     @Override
     public BlockPathTypes getBlockPathType(Mob mob, BlockPos pos) {

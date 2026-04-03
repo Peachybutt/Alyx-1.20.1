@@ -58,6 +58,6 @@ public class AlyxMeleeAttack extends Behavior<AlyxEntity> {
 
     @Override
     protected void stop(ServerLevel level, AlyxEntity alyx, long gameTime) {
-        alyx.getBrain().eraseMemory(MemoryModuleType.ATTACK_TARGET);
+        //alyx.getBrain().eraseMemory(MemoryModuleType.ATTACK_TARGET); - This code is invalid, clearing the target will cause the attack sequence to fail
     }
 }

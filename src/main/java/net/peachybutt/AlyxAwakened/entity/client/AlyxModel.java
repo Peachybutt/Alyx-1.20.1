@@ -10,8 +10,6 @@ import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
-import javax.swing.text.html.parser.Entity;
-
 public class AlyxModel extends GeoModel<AlyxEntity> {
     private final ResourceLocation model = new ResourceLocation(AlyxAwakened.MOD_ID, "geo/alyx.geo.json");
     private final ResourceLocation texture = new ResourceLocation(AlyxAwakened.MOD_ID, "textures/entity/alyx.png");

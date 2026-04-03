@@ -57,6 +57,7 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     static {
         SENSOR_TYPES = ImmutableList.of(ModSensorTypes.ALYX_NEAREST_LIVING_ENTITIES.get());
         MEMORY_TYPES = ImmutableList.of(MemoryModuleType.ATTACK_TARGET, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH);
+        PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(1, 99); //Random angry time, grrr
     }
 
     protected static final ImmutableList<SensorType<? extends Sensor<? super AlyxEntity>>> SENSOR_TYPES;
@@ -105,6 +106,7 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         this.level().getProfiler().pop();
         this.level().getProfiler().push("alyxActivityUpdate");
         AlyxAi.updateActivity(this);
+        this.level().getProfiler().pop();
         this.navigation.tick();
         this.moveControl.tick();
         super.customServerAiStep();
@@ -178,10 +180,6 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         controllers.add(new AnimationController<>(this, "attack_controller", 0, this::attackPredicate));
     }
 
-
-    private void updateSwingTime(int i) { //idk what this is/was/will be used for
-    }
-
     protected <E extends PathfinderMob> PlayState predicate(AnimationState<AlyxEntity> alyxEntityAnimationState) {
         if(alyxEntityAnimationState.isMoving()) {
             alyxEntityAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.alyx.walk", Animation.LoopType.LOOP));
@@ -218,17 +216,6 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         return this.cache;
     }
 
-
-
-
-    //Anger, Agro, Etc
-
-
-
-
-    static {
-        PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(1, 99); //Random angry time, grrr
-    }
 
     //Bla bla bla shes mad, you haven't touched this
 

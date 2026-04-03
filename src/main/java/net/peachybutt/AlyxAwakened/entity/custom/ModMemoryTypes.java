@@ -12,8 +12,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
-import javax.print.DocFlavor;
-import javax.swing.text.html.parser.Entity;
 import java.util.Optional;
 import java.util.UUID;
 

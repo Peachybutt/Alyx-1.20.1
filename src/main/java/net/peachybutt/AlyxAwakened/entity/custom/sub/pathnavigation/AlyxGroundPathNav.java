@@ -87,23 +87,25 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
         Vec3 destination = new Vec3(currentNode.x + 0.5, currentNode.y, currentNode.z + 0.5);
 
+        if (this.path == null || this.path.isDone()) return super.getTempMobPos(); {
 
-        if (type == ModPathTypes.PARTIAL_PASSABLE) {
-            Direction openDir = getOpenFenceSide(pos);
-            Vec3 offset = switch (openDir) {
-                case NORTH -> new Vec3(0, 0, -0.9);
-                case SOUTH -> new Vec3(0, 0, 0.425);
-                case WEST -> new Vec3(-0.425, 0, 0);
-                case EAST -> new Vec3(0.425, 0, 0);
-                default -> Vec3.ZERO;
-            };
-            destination = destination.add(offset);
-            System.out.println("BlockPathType at node: " + type + " for position: " + pos);
-            System.out.println("Open side found: " + openDir);
-            System.out.println("Final movement destination: " + destination);
+            if (type == ModPathTypes.PARTIAL_PASSABLE) {
+                Direction openDir = getOpenFenceSide(pos);
+                Vec3 offset = switch (openDir) {
+                    case NORTH -> new Vec3(0, 0, -0.9);
+                    case SOUTH -> new Vec3(0, 0, 0.425);
+                    case WEST -> new Vec3(-0.425, 0, 0);
+                    case EAST -> new Vec3(0.425, 0, 0);
+                    default -> Vec3.ZERO;
+                };
+                destination = destination.add(offset);
+                System.out.println("BlockPathType at node: " + type + " for position: " + pos);
+                System.out.println("Open side found: " + openDir);
+                System.out.println("Final movement destination: " + destination);
+            }
+
+            return destination;
         }
-
-        return destination;
     }
 
     @Override
@@ -154,7 +156,7 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
     @Override
     public void tick() {
-        if (customPath.isEmpty()) {
+        if (!customPath.isEmpty()) {
          followCustomPath(customPath); //Custom pathfinding behavior
         } else {
         super.tick(); //Fallback to vanilla

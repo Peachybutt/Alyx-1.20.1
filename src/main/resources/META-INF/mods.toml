@@ -57,7 +57,7 @@ description='''${mod_description}'''
 [[dependencies.alyx_awakened]]
     modId="geckolib"
     mandatory=true
-    versionRange="47.3.0"
+    versionRange="[4.4,)"
     ordering="NONE"
     side="BOTH"
 # Here's another dependency
