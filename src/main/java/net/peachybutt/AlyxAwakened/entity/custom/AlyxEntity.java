@@ -19,11 +19,11 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.peachybutt.AlyxAwakened.entity.animations.ModAnimationsDefinitions;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.AlyxAi;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.pathnavigation.AlyxGroundPathNav;
 import org.jetbrains.annotations.Nullable;
@@ -181,19 +181,17 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     }
 
     protected <E extends PathfinderMob> PlayState predicate(AnimationState<AlyxEntity> alyxEntityAnimationState) {
-        if(alyxEntityAnimationState.isMoving()) {
-            alyxEntityAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.alyx.walk", Animation.LoopType.LOOP));
+        if (alyxEntityAnimationState.isMoving()) {
+            alyxEntityAnimationState.getController().setAnimation(ModAnimationsDefinitions.ALYX_WALK);
             return PlayState.CONTINUE;
         }
-
-        alyxEntityAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.alyx.idle", Animation.LoopType.LOOP));
+        alyxEntityAnimationState.getController().setAnimation(ModAnimationsDefinitions.ALYX_IDLE);
         return PlayState.CONTINUE;
     }
 
     private PlayState attackPredicate(AnimationState<AlyxEntity> alyxEntityAnimationState) {
         if (this.swinging) {
-            alyxEntityAnimationState.getController().setAnimation(RawAnimation.begin()
-                    .then("animation.alyx.attack", Animation.LoopType.PLAY_ONCE));
+            alyxEntityAnimationState.getController().setAnimation(ModAnimationsDefinitions.ALYX_ATTACK);
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;

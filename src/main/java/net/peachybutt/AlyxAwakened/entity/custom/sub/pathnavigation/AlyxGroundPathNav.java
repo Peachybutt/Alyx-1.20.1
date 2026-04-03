@@ -45,7 +45,7 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
         this.nodeEvaluator = this.alyxNodeEvaluator;
 
-        this.alyxPathLogic = new AlyxPathLogic();
+        //this.alyxPathLogic = new AlyxPathLogic(); - Useless
         return new PathFinder(this.alyxNodeEvaluator, 500);
 
 
@@ -79,17 +79,17 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
     @Override
     protected Vec3 getTempMobPos() { //Temp displacement for partial passable movement, remove
-        Node currentNode = path.getNextNode();
 
+        if (this.path == null || this.path.isDone()) return super.getTempMobPos();
+
+        Node currentNode = path.getNextNode();
 
         BlockPos pos = new BlockPos(currentNode.x, currentNode.y, currentNode.z);
         BlockPathTypes type = this.nodeEvaluator.getBlockPathType(this.level, pos.getX(), pos.getY(), pos.getZ());
 
         Vec3 destination = new Vec3(currentNode.x + 0.5, currentNode.y, currentNode.z + 0.5);
 
-        if (this.path == null || this.path.isDone()) return super.getTempMobPos(); {
-
-            if (type == ModPathTypes.PARTIAL_PASSABLE) {
+        if (type == ModPathTypes.PARTIAL_PASSABLE) {
                 Direction openDir = getOpenFenceSide(pos);
                 Vec3 offset = switch (openDir) {
                     case NORTH -> new Vec3(0, 0, -0.9);
@@ -99,13 +99,9 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
                     default -> Vec3.ZERO;
                 };
                 destination = destination.add(offset);
-                System.out.println("BlockPathType at node: " + type + " for position: " + pos);
-                System.out.println("Open side found: " + openDir);
-                System.out.println("Final movement destination: " + destination);
             }
 
             return destination;
-        }
     }
 
     @Override

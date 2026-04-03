@@ -8,10 +8,6 @@ import net.minecraft.world.entity.ai.behavior.declarative.BehaviorBuilder;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.monster.piglin.Piglin;
-import net.minecraft.world.entity.monster.piglin.PiglinAi;
-import net.minecraft.world.entity.monster.piglin.RememberIfHoglinWasKilled;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.peachybutt.AlyxAwakened.entity.custom.AlyxEntity;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.*;
@@ -45,7 +41,7 @@ public class AlyxAi {
         brain.addActivity(Activity.CORE, 0,
                 ImmutableList.of(
                         new LookAtTargetSink(45, 90),
-                        new MoveToTargetSink(),
+                        new AlyxMoveToTarget(),
                         InteractWithDoor.create()
                 ));
     }
@@ -56,7 +52,8 @@ public class AlyxAi {
                         StopAttackingIfTargetInvalid.create((
                                 target) -> !isNearestValidAttackTarget(alyx, target)),
                         SetWalkTargetFromAttackTargetIfTargetOutOfReach.create(1.0F),
-                        MeleeAttack.create(20)
+                        //MeleeAttack.create(20)
+                        new AlyxMeleeAttack(20)
                 ), MemoryModuleType.ATTACK_TARGET);
     }
 

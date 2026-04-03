@@ -45,13 +45,8 @@ public class AlyxMoveToTarget extends Behavior<Mob> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, Mob mob) {
         if (!(mob instanceof AlyxEntity alyx)) return false;
-        System.out.println("[DEBUG] --- Alyx Brain Memory Dump ---");
-        alyx.getBrain().getMemories().forEach((type, optional) ->
-                System.out.println("[DEBUG] " + type + " = " + optional)
-        );
 
         if (this.remainingCooldown > 0) {
-            System.out.println("[DEBUG] AlyxMoveToTarget: cooldown active");
             --this.remainingCooldown;
             return false;
         }
@@ -88,7 +83,6 @@ public class AlyxMoveToTarget extends Behavior<Mob> {
     protected void start(ServerLevel level, Mob mob, long gameTime) {
         if (!(mob instanceof AlyxEntity alyx)) return;
 
-        System.out.println("[DEBUG] MoveToTarget START Called");
         alyx.getBrain().setMemory(MemoryModuleType.PATH, this.path);
         alyx.getNavigation().moveTo(this.path, this.speedModifier);
     }

@@ -29,12 +29,6 @@ public class AlyxNearestLivingEntitySensor extends Sensor<AlyxEntity> {
                 e -> e != alyx && alyx.getSensing().hasLineOfSight(e)
         );
 
-        if (visibleEntities.isEmpty()) {
-            System.out.println("No visible entities.");
-        } else {
-            System.out.println("Detected: " + visibleEntities);
-        }
-
         alyx.getBrain().setMemory(
                 MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
                 new NearestVisibleLivingEntities(alyx, visibleEntities)
@@ -44,8 +38,7 @@ public class AlyxNearestLivingEntitySensor extends Sensor<AlyxEntity> {
     @Override
     public Set<MemoryModuleType<?>> requires() {
         return ImmutableSet.of(
-                MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
-                MemoryModuleType.ATTACK_TARGET
+                MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES
         );
     }
 }

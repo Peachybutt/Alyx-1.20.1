@@ -91,8 +91,9 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
                     }
                 } else {
                     // No open side found — fence is fully connected, treat as blocked
-                    neighbors[i] = null;
-                    count--;
+                    System.arraycopy(neighbors, i + 1, neighbors, i, count - i - 1);
+                    neighbors[--count] = null;
+                    i--;
                 }
             }
         }
