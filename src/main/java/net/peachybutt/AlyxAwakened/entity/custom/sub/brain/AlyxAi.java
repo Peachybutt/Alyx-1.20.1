@@ -14,6 +14,8 @@ import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.*;
 
 import java.util.Optional;
 
+import static com.mojang.text2speech.Narrator.LOGGER;
+
 
 public class AlyxAi {
     public static final int EXAMPLE_VARIABLE = 8;
@@ -46,6 +48,13 @@ public class AlyxAi {
                 ));
     }
 
+    private static void initIdleActivity(Brain<AlyxEntity> brain) {
+        brain.addActivity(Activity.IDLE, 10,
+                ImmutableList.of(
+                        StartAttacking.create(e -> true, AlyxAi::findNearestValidAttackTarget)
+                ));
+    }
+
     private static void initFightActivity(AlyxEntity alyx, Brain<AlyxEntity> pBrain) {
         pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 10,
                 ImmutableList.of(
@@ -58,26 +67,48 @@ public class AlyxAi {
                 ), MemoryModuleType.ATTACK_TARGET);
     }
 
-    private static void initIdleActivity(Brain<AlyxEntity> brain) {
-        brain.addActivity(Activity.IDLE,
-                ImmutableList.of());
-    }
-
-    // Bla bla bla
+    // This sets the baseline activities, I think?
 
     public static void updateActivity(AlyxEntity alyx) {
         Brain<AlyxEntity> brain = alyx.getBrain();
+
+        // 1. Is the sensor populating the memory?
+        brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).ifPresentOrElse(
+                entities -> LOGGER.info("[ALYX] Visible entities: {}", entities.findClosest(e -> true).map(e -> e.getClass().getSimpleName()).orElse("none")),
+                () -> LOGGER.info("[ALYX] NEAREST_VISIBLE_LIVING_ENTITIES is empty")
+        );
+
+        // 2. Is findNearestValidAttackTarget finding a creeper?
+        Optional<? extends LivingEntity> target = findNearestValidAttackTarget(alyx);
+        LOGGER.info("[ALYX] findNearestValidAttackTarget result: {}",
+                target.map(e -> e.getClass().getSimpleName()).orElse("none"));
+
+        // 3. Is ATTACK_TARGET being set?
+        brain.getMemory(MemoryModuleType.ATTACK_TARGET).ifPresentOrElse(
+                t -> LOGGER.info("[ALYX] ATTACK_TARGET present: {}", t.getClass().getSimpleName()),
+                () -> LOGGER.info("[ALYX] ATTACK_TARGET is empty")
+        );
+
+        // 4. What activity is currently active?
+        LOGGER.info("[ALYX] Active activities before update: {}", brain.getActiveActivities());
+
         brain.setActiveActivityToFirstValid(ImmutableList.of(
                 Activity.FIGHT,
                 Activity.IDLE
         ));
+
+        // 5. Did the activity switch?
+        LOGGER.info("[ALYX] Active activities after update: {}", brain.getActiveActivities());
     }
 
     private static boolean isNearestValidAttackTarget(AlyxEntity alyx, LivingEntity pTarget) {
         return findNearestValidAttackTarget(alyx).filter((livingEntity) -> {
             return livingEntity == pTarget;
         }).isPresent();
+
     }
+
+    //This is filling the ATTACK_TARGET variable
 
     public static Optional<? extends LivingEntity> findNearestValidAttackTarget(AlyxEntity alyx) {
             Brain<AlyxEntity> brain = alyx.getBrain();

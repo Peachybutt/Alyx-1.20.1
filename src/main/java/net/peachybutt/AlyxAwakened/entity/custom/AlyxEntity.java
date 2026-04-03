@@ -108,6 +108,7 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
 
     @Override
     protected void customServerAiStep() {
+        super.customServerAiStep();
         this.level().getProfiler().push("alyxBrain");
         this.getBrain().tick((ServerLevel) this.level(), this);
         this.level().getProfiler().pop();
@@ -116,7 +117,6 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         this.level().getProfiler().pop();
         this.navigation.tick();
         this.moveControl.tick();
-        super.customServerAiStep();
     }
 
     @Override // This is only necessary if the Generic Attack Animation is not swinging.
