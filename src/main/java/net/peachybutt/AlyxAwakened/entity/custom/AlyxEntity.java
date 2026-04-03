@@ -55,8 +55,15 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     private int personality;
 
     static {
-        SENSOR_TYPES = ImmutableList.of(ModSensorTypes.ALYX_NEAREST_LIVING_ENTITIES.get());
-        MEMORY_TYPES = ImmutableList.of(MemoryModuleType.ATTACK_TARGET, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH);
+        SENSOR_TYPES = ImmutableList.of(
+                ModSensorTypes.ALYX_NEAREST_LIVING_ENTITIES.get());
+        MEMORY_TYPES = ImmutableList.of(
+                MemoryModuleType.ATTACK_TARGET,
+                MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+                MemoryModuleType.LOOK_TARGET,
+                MemoryModuleType.WALK_TARGET,
+                MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
+                MemoryModuleType.PATH);
         PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(1, 99); //Random angry time, grrr
     }
 

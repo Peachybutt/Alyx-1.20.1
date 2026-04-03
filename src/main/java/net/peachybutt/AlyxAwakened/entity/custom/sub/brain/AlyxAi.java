@@ -49,6 +49,7 @@ public class AlyxAi {
     private static void initFightActivity(AlyxEntity alyx, Brain<AlyxEntity> pBrain) {
         pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 10,
                 ImmutableList.of(
+                        StartAttacking.create(e -> true, AlyxAi::findNearestValidAttackTarget),
                         StopAttackingIfTargetInvalid.create((
                                 target) -> !isNearestValidAttackTarget(alyx, target)),
                         SetWalkTargetFromAttackTargetIfTargetOutOfReach.create(1.0F),
@@ -78,7 +79,7 @@ public class AlyxAi {
         }).isPresent();
     }
 
-    private static Optional<? extends LivingEntity> findNearestValidAttackTarget(AlyxEntity alyx) {
+    public static Optional<? extends LivingEntity> findNearestValidAttackTarget(AlyxEntity alyx) {
             Brain<AlyxEntity> brain = alyx.getBrain();
 
             return brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES)
