@@ -18,7 +18,8 @@ import java.util.stream.Collectors;
 
 public class AlyxNearestLivingEntitySensor extends Sensor<AlyxEntity> {
     public AlyxNearestLivingEntitySensor() {
-        super(100); // Tick interval
+
+        super(20); // Tick interval
     }
 
     @Override

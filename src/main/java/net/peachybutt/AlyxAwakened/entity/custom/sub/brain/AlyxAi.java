@@ -1,6 +1,7 @@
 package net.peachybutt.AlyxAwakened.entity.custom.sub.brain;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
@@ -11,13 +12,13 @@ import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.schedule.Activity;
 import net.peachybutt.AlyxAwakened.entity.custom.AlyxEntity;
 import net.peachybutt.AlyxAwakened.entity.custom.sub.brain.behaviors.*;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
-import static com.mojang.text2speech.Narrator.LOGGER;
-
 
 public class AlyxAi {
+    private static final Logger LOGGER = LogUtils.getLogger(); // Debugging
     public static final int EXAMPLE_VARIABLE = 8;
 
 
@@ -43,7 +44,8 @@ public class AlyxAi {
         brain.addActivity(Activity.CORE, 0,
                 ImmutableList.of(
                         new LookAtTargetSink(45, 90),
-                        new AlyxMoveToTarget(),
+                        new MoveToTargetSink(),
+                        //new AlyxMoveToTarget(),  We will probably want to reimplement this later, movetotarget is already accomplishing what it wants to do tho
                         InteractWithDoor.create()
                 ));
     }
@@ -62,7 +64,6 @@ public class AlyxAi {
                         StopAttackingIfTargetInvalid.create((
                                 target) -> !isNearestValidAttackTarget(alyx, target)),
                         SetWalkTargetFromAttackTargetIfTargetOutOfReach.create(1.0F),
-                        //MeleeAttack.create(20)
                         new AlyxMeleeAttack(20)
                 ), MemoryModuleType.ATTACK_TARGET);
     }
