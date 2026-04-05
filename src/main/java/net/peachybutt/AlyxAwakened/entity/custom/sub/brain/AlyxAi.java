@@ -34,7 +34,7 @@ public class AlyxAi {
         brain.setActiveActivityIfPossible(Activity.IDLE);
 
         //Excess
-        brain.useDefaultActivity();
+        //brain.useDefaultActivity();
         return brain;
     }
 
