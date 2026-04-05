@@ -100,6 +100,13 @@ public class AlyxAi {
 
         // 5. Did the activity switch?
         LOGGER.info("[ALYX] Active activities after update: {}", brain.getActiveActivities());
+
+        // 6.  Walk target?
+        brain.getMemory(MemoryModuleType.WALK_TARGET).ifPresentOrElse(
+                t -> LOGGER.info("[ALYX] WALK_TARGET present, target pos: {}",
+                        t.getTarget().currentBlockPosition()),
+                () -> LOGGER.info("[ALYX] WALK_TARGET is empty")
+        );
     }
 
     private static boolean isNearestValidAttackTarget(AlyxEntity alyx, LivingEntity pTarget) {

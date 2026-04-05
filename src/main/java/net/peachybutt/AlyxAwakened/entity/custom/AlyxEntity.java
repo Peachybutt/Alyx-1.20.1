@@ -16,6 +16,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
@@ -103,18 +104,24 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
 
     @Override
     protected PathNavigation createNavigation(Level pLevel) {
-        return new AlyxGroundPathNav(this, pLevel);
+        //return new AlyxGroundPathNav(this, pLevel);
+        return new GroundPathNavigation(this, pLevel);
     }
 
     @Override
     protected void customServerAiStep() {
         this.level().getProfiler().push("alyxBrain");
+
+        System.out.println("[NAV] isInProgress: " + this.getNavigation().isInProgress()
+                + " | WALK_TARGET: " + this.getBrain().getMemory(MemoryModuleType.WALK_TARGET).isPresent());
+        System.out.println("[NAV] path null: " + (this.getNavigation().getPath() == null)
+                + " | createPath test: " + (this.getNavigation().createPath(this.blockPosition().offset(1,0,0), 1) == null));
+
         this.getBrain().tick((ServerLevel) this.level(), this);
         this.level().getProfiler().pop();
         this.level().getProfiler().push("alyxActivityUpdate");
         AlyxAi.updateActivity(this);
         this.level().getProfiler().pop();
-        super.customServerAiStep();
     }
 
     @Override // This is only necessary if the Generic Attack Animation is not swinging.
