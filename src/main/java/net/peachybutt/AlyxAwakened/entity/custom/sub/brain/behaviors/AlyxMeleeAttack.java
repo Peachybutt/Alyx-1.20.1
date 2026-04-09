@@ -34,7 +34,6 @@ public class AlyxMeleeAttack extends Behavior<AlyxEntity> {
     @Override
     protected void start(ServerLevel level, AlyxEntity alyx, long gameTime) {
         this.lastAttackTime = gameTime;
-        System.out.println("MeleeAttack Called");
         alyx.getNavigation().stop();
         alyx.swing(InteractionHand.MAIN_HAND);
         alyx.doHurtTarget(alyx.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).orElse(null));

@@ -111,12 +111,6 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
     @Override
     protected void customServerAiStep() {
         this.level().getProfiler().push("alyxBrain");
-
-        System.out.println("[NAV] isInProgress: " + this.getNavigation().isInProgress()
-                + " | WALK_TARGET: " + this.getBrain().getMemory(MemoryModuleType.WALK_TARGET).isPresent());
-        System.out.println("[NAV] path null: " + (this.getNavigation().getPath() == null)
-                + " | createPath test: " + (this.getNavigation().createPath(this.blockPosition().offset(1,0,0), 1) == null));
-
         this.getBrain().tick((ServerLevel) this.level(), this);
         this.level().getProfiler().pop();
         this.level().getProfiler().push("alyxActivityUpdate");

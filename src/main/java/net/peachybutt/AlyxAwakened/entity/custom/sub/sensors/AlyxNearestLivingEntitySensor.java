@@ -24,7 +24,6 @@ public class AlyxNearestLivingEntitySensor extends Sensor<AlyxEntity> {
 
     @Override
     protected void doTick(ServerLevel level, AlyxEntity alyx) {
-        System.out.println("[SENSOR] doTick firing");
         List<LivingEntity> visibleEntities = level.getEntitiesOfClass(
                 LivingEntity.class,
                 alyx.getBoundingBox().inflate(16),

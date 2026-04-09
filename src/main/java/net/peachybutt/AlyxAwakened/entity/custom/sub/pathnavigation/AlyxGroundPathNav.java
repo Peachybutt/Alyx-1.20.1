@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class AlyxGroundPathNav extends GroundPathNavigation {
+    //The purpose of this class is to control navigation and make pathfinding decisions
     private AlyxWalkNodeEval alyxNodeEvaluator;
     private AlyxPathLogic alyxPathLogic;
     private List<BlockPos> customPath = Collections.emptyList();
@@ -51,30 +52,9 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
     }
 
-
-    public Direction getOpenFenceSide(BlockPos pos) { //Partial passable general code, remove?
-        BlockState state = this.level.getBlockState(pos);
-
-        if (!(state.getBlock() instanceof FenceBlock fenceBlock)) {
-            return null;
-        }
-
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos neighborPos = pos.relative(direction);
-            BlockState neighborState = this.level.getBlockState(neighborPos);
-
-            boolean connects = fenceBlock.connectsTo(
-                    neighborState,
-                    neighborState.isFaceSturdy(this.level, neighborPos, direction.getOpposite()),
-                    direction
-            );
-
-            if (!connects) {
-                return direction; //Returns open side
-            }
-        }
-
-        return null; //All sides are connected so no dice
+    //getOpenFenceSide per AlyxWalkNodeEval
+    public Direction getOpenFenceSide(BlockPos pos) {
+        return this.alyxNodeEvaluator.getOpenFenceSide(pos);
     }
 
     @Override

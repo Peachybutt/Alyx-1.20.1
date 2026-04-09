@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
@@ -16,6 +17,7 @@ import net.peachybutt.AlyxAwakened.entity.custom.ModPathTypes;
 import org.jetbrains.annotations.NotNull;
 
 public class AlyxWalkNodeEval extends WalkNodeEvaluator {
+    //The purpose of this class is to classify blocks and shi, not make pathfinding decisions
     public AlyxWalkNodeEval() {
         super();
     }
@@ -23,24 +25,31 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
     @Override
     public BlockPathTypes getBlockPathType(BlockGetter level, int x, int y, int z) {
         BlockPos pos = new BlockPos(x, y, z);
-        BlockState stateBelow = level.getBlockState(pos.below());
         BlockState state = level.getBlockState(pos);
         Block block = state.getBlock();
         BlockPathTypes original = super.getBlockPathType(level, x, y, z);
 
-        if (block instanceof FenceBlock) {
-
-            boolean northConnected = state.getValue(FenceBlock.NORTH);
-            boolean southConnected = state.getValue(FenceBlock.SOUTH);
-            boolean eastConnected = state.getValue(FenceBlock.EAST);
-            boolean westConnected = state.getValue(FenceBlock.WEST);
-
-
-            if (northConnected || southConnected || eastConnected || westConnected) return ModPathTypes.PARTIAL_PASSABLE;
+        if (block instanceof FenceGateBlock) {
+            // Open fence gates are walkable, closed ones are blocked
+            return state.getValue(FenceGateBlock.OPEN)
+                    ? BlockPathTypes.WALKABLE
+                    : BlockPathTypes.BLOCKED;
         }
 
+        //Pass around fences
+        if (block instanceof FenceBlock) {
+            boolean north = state.getValue(FenceBlock.NORTH);
+            boolean south = state.getValue(FenceBlock.SOUTH);
+            boolean east  = state.getValue(FenceBlock.EAST);
+            boolean west  = state.getValue(FenceBlock.WEST);
 
-        // This section basically introduces AlyxPathLogic blocks telling Alyx where to walk and prefer to walk.
+            if (north || south || east || west) {
+                boolean hasOpenSide = !north || !south || !east || !west;
+                if (hasOpenSide) return ModPathTypes.PARTIAL_PASSABLE;
+            }
+        }
+
+        BlockState stateBelow = level.getBlockState(pos.below());
         return AlyxPathLogic.overridePathType(original, stateBelow);
     }
 
@@ -73,33 +82,48 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
     public int getNeighbors(Node[] neighbors, Node currentNode) {
         int count = super.getNeighbors(neighbors, currentNode);
 
-        for (int i = 0; i < count; i++) {
-            Node node = neighbors[i];
-            BlockPathTypes pathType = this.getBlockPathType(this.level, node.x, node.y, node.z);
+        for (Direction dir : Direction.Plane.HORIZONTAL) {
+            int nx = currentNode.x + dir.getStepX();
+            int ny = currentNode.y;
+            int nz = currentNode.z + dir.getStepZ();
 
-            if (pathType == ModPathTypes.PARTIAL_PASSABLE) {
-                Direction openDir = getOpenFenceSide(new BlockPos(node.x, node.y, node.z));
-                if (openDir != null) {
-                    int sideX = node.x + openDir.getStepX();
-                    int sideZ = node.z + openDir.getStepZ();
+            BlockPathTypes pathType = this.getBlockPathType(this.level, nx, ny, nz);
 
-                    Node entryNode = this.getNode(sideX, node.y, sideZ);
-                    entryNode.type = this.getBlockPathType(this.level, sideX, node.y, sideZ);
+            if (pathType != ModPathTypes.PARTIAL_PASSABLE) continue;
 
-                    if (!entryNode.closed && entryNode.type != BlockPathTypes.BLOCKED) {
-                        neighbors[i] = entryNode; // replace the fence node with the gap node
-                    }
-                } else {
-                    // No open side found — fence is fully connected, treat as blocked
-                    System.arraycopy(neighbors, i + 1, neighbors, i, count - i - 1);
-                    neighbors[--count] = null;
-                    i--;
+            // Found a partial passable fence — find its open side
+            Direction openDir = getOpenFenceSide(new BlockPos(nx, ny, nz));
+            if (openDir == null) continue;
+
+            // The gap node is one block past the fence on its open side
+            int gx = nx + openDir.getStepX();
+            int gz = nz + openDir.getStepZ();
+
+            BlockPathTypes gapType = this.getBlockPathType(this.level, gx, ny, gz);
+            if (gapType == BlockPathTypes.BLOCKED) continue;
+
+            Node gapNode = this.getNode(gx, ny, gz);
+            if (gapNode == null || gapNode.closed) continue;
+
+            gapNode.type = gapType;
+
+            // Only add if not already in the neighbor list
+            boolean alreadyAdded = false;
+            for (int i = 0; i < count; i++) {
+                if (neighbors[i] != null && neighbors[i].x == gx
+                        && neighbors[i].y == ny && neighbors[i].z == gz) {
+                    alreadyAdded = true;
+                    break;
                 }
             }
+
+            if (!alreadyAdded) {
+                neighbors[count++] = gapNode;
+            }
         }
-        return count;
         // Add vertical movement if needed (stairs, slabs, etc)
         // Possibly add diagonal or jump-over logic if you're billy (billy badass that is)
+        return count;
     }
 
 

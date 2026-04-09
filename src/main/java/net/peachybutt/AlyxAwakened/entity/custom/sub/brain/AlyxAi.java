@@ -1,6 +1,7 @@
 package net.peachybutt.AlyxAwakened.entity.custom.sub.brain;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
@@ -28,13 +29,14 @@ public class AlyxAi {
         initIdleActivity(brain);
         initFightActivity(alyx, brain);
 
+        //Perma active set
+        brain.setCoreActivities(ImmutableSet.of(Activity.CORE));
 
         //Set activity sets
         brain.setActiveActivityIfPossible(Activity.CORE);
         brain.setActiveActivityIfPossible(Activity.IDLE);
 
         //Excess
-        //brain.useDefaultActivity();
         return brain;
     }
 
@@ -72,41 +74,10 @@ public class AlyxAi {
 
     public static void updateActivity(AlyxEntity alyx) {
         Brain<AlyxEntity> brain = alyx.getBrain();
-
-        // 1. Is the sensor populating the memory?
-        brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).ifPresentOrElse(
-                entities -> LOGGER.info("[ALYX] Visible entities: {}", entities.findClosest(e -> true).map(e -> e.getClass().getSimpleName()).orElse("none")),
-                () -> LOGGER.info("[ALYX] NEAREST_VISIBLE_LIVING_ENTITIES is empty")
-        );
-
-        // 2. Is findNearestValidAttackTarget finding a creeper?
-        Optional<? extends LivingEntity> target = findNearestValidAttackTarget(alyx);
-        LOGGER.info("[ALYX] findNearestValidAttackTarget result: {}",
-                target.map(e -> e.getClass().getSimpleName()).orElse("none"));
-
-        // 3. Is ATTACK_TARGET being set?
-        brain.getMemory(MemoryModuleType.ATTACK_TARGET).ifPresentOrElse(
-                t -> LOGGER.info("[ALYX] ATTACK_TARGET present: {}", t.getClass().getSimpleName()),
-                () -> LOGGER.info("[ALYX] ATTACK_TARGET is empty")
-        );
-
-        // 4. What activity is currently active?
-        LOGGER.info("[ALYX] Active activities before update: {}", brain.getActiveActivities());
-
         brain.setActiveActivityToFirstValid(ImmutableList.of(
                 Activity.FIGHT,
                 Activity.IDLE
         ));
-
-        // 5. Did the activity switch?
-        LOGGER.info("[ALYX] Active activities after update: {}", brain.getActiveActivities());
-
-        // 6.  Walk target?
-        brain.getMemory(MemoryModuleType.WALK_TARGET).ifPresentOrElse(
-                t -> LOGGER.info("[ALYX] WALK_TARGET present, target pos: {}",
-                        t.getTarget().currentBlockPosition()),
-                () -> LOGGER.info("[ALYX] WALK_TARGET is empty")
-        );
     }
 
     private static boolean isNearestValidAttackTarget(AlyxEntity alyx, LivingEntity pTarget) {
