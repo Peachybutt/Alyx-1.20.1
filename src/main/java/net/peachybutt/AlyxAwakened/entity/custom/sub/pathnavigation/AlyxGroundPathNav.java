@@ -54,11 +54,13 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
     //getOpenFenceSide per AlyxWalkNodeEval
     public Direction getOpenFenceSide(BlockPos pos) {
+        if (this.alyxNodeEvaluator == null) return null; // crash protection
         return this.alyxNodeEvaluator.getOpenFenceSide(pos);
     }
 
     @Override
     protected Vec3 getTempMobPos() { //Temp displacement for partial passable movement, remove
+
 
         if (this.path == null || this.path.isDone()) return super.getTempMobPos();
 
@@ -70,16 +72,17 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
         Vec3 destination = new Vec3(currentNode.x + 0.5, currentNode.y, currentNode.z + 0.5);
 
         if (type == ModPathTypes.PARTIAL_PASSABLE) {
-                Direction openDir = getOpenFenceSide(pos);
-                Vec3 offset = switch (openDir) {
-                    case NORTH -> new Vec3(0, 0, -0.9);
-                    case SOUTH -> new Vec3(0, 0, 0.425);
-                    case WEST -> new Vec3(-0.425, 0, 0);
-                    case EAST -> new Vec3(0.425, 0, 0);
-                    default -> Vec3.ZERO;
-                };
-                destination = destination.add(offset);
-            }
+            Direction openDir = getOpenFenceSide(pos);
+            if (openDir == null) return destination; // can't determine gap, use center
+            Vec3 offset = switch (openDir) {
+                case NORTH -> new Vec3(0, 0, -0.9);
+                case SOUTH -> new Vec3(0, 0, 0.425);
+                case WEST  -> new Vec3(-0.425, 0, 0);
+                case EAST  -> new Vec3(0.425, 0, 0);
+                default    -> Vec3.ZERO;
+            };
+            destination = destination.add(offset);
+        }
 
             return destination;
     }

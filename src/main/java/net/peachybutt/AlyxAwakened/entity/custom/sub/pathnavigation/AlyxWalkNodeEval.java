@@ -53,7 +53,9 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
         return AlyxPathLogic.overridePathType(original, stateBelow);
     }
 
-    public Direction getOpenFenceSide(BlockPos pos) { //Partial passable general code, remove?
+    public Direction getOpenFenceSide(BlockPos pos) {
+        if (this.level == null) return null; //Crash protection
+
         BlockState state = this.level.getBlockState(pos);
 
         if (!(state.getBlock() instanceof FenceBlock fenceBlock)) {

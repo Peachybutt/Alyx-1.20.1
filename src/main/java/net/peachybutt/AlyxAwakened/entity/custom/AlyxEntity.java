@@ -77,6 +77,7 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
         this.refreshDimensions();
         this.setPathfindingMalus(BlockPathTypes.COCOA, 0.0F); //Defined in AlyxPathLogic
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F); //Defined in AlyxPathLogic
+        this.setPathfindingMalus(ModPathTypes.PARTIAL_PASSABLE, 8.0F);
     }
 
 
@@ -104,8 +105,8 @@ public class AlyxEntity extends PathfinderMob implements GeoEntity, NeutralMob {
 
     @Override
     protected PathNavigation createNavigation(Level pLevel) {
-        //return new AlyxGroundPathNav(this, pLevel);
-        return new GroundPathNavigation(this, pLevel);
+        return new AlyxGroundPathNav(this, pLevel);
+        //return new GroundPathNavigation(this, pLevel);
     }
 
     @Override
