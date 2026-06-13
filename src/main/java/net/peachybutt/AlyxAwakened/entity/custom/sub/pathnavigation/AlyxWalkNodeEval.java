@@ -29,6 +29,12 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
         Block block = state.getBlock();
         BlockPathTypes original = super.getBlockPathType(level, x, y, z);
 
+        if (block instanceof FenceBlock) {
+            System.out.println("[PATHTYPE] FenceBlock at " + x + "," + y + "," + z
+                    + " | state: " + state
+                    + " | block at y+1: " + level.getBlockState(pos.above())
+                    + " | block at y-1: " + level.getBlockState(pos.below()));
+        }
         if (block instanceof FenceGateBlock) {
             // Open fence gates are walkable, closed ones are blocked
             return state.getValue(FenceGateBlock.OPEN)
