@@ -73,7 +73,13 @@ public class AlyxWalkNodeEval extends WalkNodeEvaluator {
             );
 
             if (!connects) {
-                return direction; //Returns open side
+                BlockState sideBelow = level.getBlockState(neighborPos.below());
+                boolean hasGround = sideBelow.isFaceSturdy(level, neighborPos.below(), Direction.UP);
+                boolean isPassable = !neighborState.isRedstoneConductor(level, neighborPos);
+
+                if (hasGround && isPassable) {
+                    return direction;
+                }
             }
         }
 

@@ -22,7 +22,6 @@ import java.util.List;
 public class AlyxGroundPathNav extends GroundPathNavigation {
     //The purpose of this class is to control navigation and make pathfinding decisions
     private AlyxWalkNodeEval alyxNodeEvaluator;
-    private AlyxPathLogic alyxPathLogic;
     private List<BlockPos> customPath = Collections.emptyList();
 
     public AlyxGroundPathNav(Mob mob, Level level) { //Constructor
@@ -46,7 +45,6 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
 
         this.nodeEvaluator = this.alyxNodeEvaluator;
 
-        //this.alyxPathLogic = new AlyxPathLogic(); - Useless
         return new PathFinder(this.alyxNodeEvaluator, 500);
 
 
@@ -59,37 +57,9 @@ public class AlyxGroundPathNav extends GroundPathNavigation {
     }
 
     @Override
-    protected Vec3 getTempMobPos() { //Temp displacement for partial passable movement, remove
-
-
-        if (this.path == null || this.path.isDone()) return super.getTempMobPos();
-
-        Node currentNode = path.getNextNode();
-
-        BlockPos pos = new BlockPos(currentNode.x, currentNode.y, currentNode.z);
-        BlockPathTypes type = this.nodeEvaluator.getBlockPathType(this.level, pos.getX(), pos.getY(), pos.getZ());
-
-        Vec3 destination = new Vec3(currentNode.x + 0.5, currentNode.y, currentNode.z + 0.5);
-
-        if (type == ModPathTypes.PARTIAL_PASSABLE) {
-            Direction openDir = getOpenFenceSide(pos);
-            if (openDir == null) return destination; // can't determine gap, use center
-            Vec3 offset = switch (openDir) {
-                case NORTH -> new Vec3(0, 0, -0.9);
-                case SOUTH -> new Vec3(0, 0, 0.425);
-                case WEST  -> new Vec3(-0.425, 0, 0);
-                case EAST  -> new Vec3(0.425, 0, 0);
-                default    -> Vec3.ZERO;
-            };
-            destination = destination.add(offset);
-        }
-
-            return destination;
-    }
-
-    @Override
     public boolean isStableDestination(BlockPos pos) { //Debug code to force Partial Passable movement, remove
-        BlockPathTypes type = this.nodeEvaluator.getBlockPathType(this.level, pos.getX(), pos.getY(), pos.getZ());
+        BlockPathTypes type = this.nodeEvaluator.getBlockPathType(
+                this.level, pos.getX(), pos.getY(), pos.getZ());
         return type == ModPathTypes.PARTIAL_PASSABLE || super.isStableDestination(pos);
     }
 
